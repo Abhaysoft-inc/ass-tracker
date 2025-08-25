@@ -13,3 +13,13 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model hod {
+  id         Int      @id @default(autoincrement())
+  name       String
+  department String
+  email      String   @unique
+  password   String
+  phone      Int
+  createdOn  DateTime @default(now())
+}

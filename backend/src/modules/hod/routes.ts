@@ -54,5 +54,28 @@ router.post("/add-faculty", async (req, res) => {
 
 
 
+// ---------------- Subject ----------------
+
+// View all subject 
+
+router.get("/view-all-subject", async (req, res) => {
+
+});
+
+// View info of a subject
+
+router.get("/subject/:id", async (req, res) => {
+
+});
+
+// Add a subject
+
+router.post("/add-subject", async (req, res) => {
+
+});
+
+
+
+
 
 
