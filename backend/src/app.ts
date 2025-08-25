@@ -2,6 +2,7 @@ import express from 'express';
 
 const app = express();
 
-// Add your middleware and routes here
+app.use(express.json());
+
 
 export default app;

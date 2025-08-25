@@ -1,0 +1,58 @@
+import { Router } from "express";
+
+const router = Router();
+
+
+// --------------   Students ----------------------
+
+// View list of all students all branches, all batches
+
+router.get("/view-all-students", async (req, res) => {
+
+});
+
+// View a particular student
+
+router.get("/student/:id", async (req, res) => {
+
+});
+
+// View students of particular batch
+
+router.get("/:batch/:students", async (req, res) => {
+
+});
+
+// Add a student
+
+router.post("/add-student", async (req, res) => {
+
+});
+
+
+
+// ---------------- Faculty ----------------
+
+// View all faculty
+
+router.get("/view-all-faculty", async (req, res) => {
+
+});
+
+// View info of a faculty
+
+router.get("/faculty/:id", async (req, res) => {
+
+});
+
+// Add a faculty
+
+router.post("/add-faculty", async (req, res) => {
+
+});
+
+
+
+
+
+
