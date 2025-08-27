@@ -14,12 +14,48 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model hod {
-  id         Int      @id @default(autoincrement())
-  name       String
+model User {
+  id       Int      @id @default(autoincrement())
+  name     String
+  email    String   @unique
+  password String
+  type     UserType
+
+  student Student?
+  hod     Hod?
+  faculty Faculty?
+}
+
+model Student {
+  userId     Int    @id
+  rollNumber Int    @unique
+  course     String
+  batch      Int
+  isVerified Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Hod {
+  UserId     Int      @id
   department String
-  email      String   @unique
-  password   String
   phone      Int
   createdOn  DateTime @default(now())
+
+  user User @relation(fields: [UserId], references: [id], onDelete: Cascade)
+}
+
+model Faculty {
+  UserId    Int      @id
+  phone     Int
+  isHOD     Boolean  @default(false)
+  createdOn DateTime @default(now())
+
+  user User @relation(fields: [UserId], references: [id], onDelete: Cascade)
+}
+
+enum UserType {
+  STUDENT
+  FACULTY
+  HOD
 }

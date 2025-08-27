@@ -1,6 +1,3 @@
 interface User {
     name: String,
-
-
-
 }

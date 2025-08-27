@@ -1,7 +1,8 @@
 import { Router } from "express";
+import { PrismaClient } from "../../generated/prisma";
 
 const router = Router();
-
+const prisma = new PrismaClient();
 
 // --------------   Students ----------------------
 
@@ -26,6 +27,16 @@ router.get("/:batch/:students", async (req, res) => {
 // Add a student
 
 router.post("/add-student", async (req, res) => {
+    const {email, password, name, rollno, branch, batch} = req.body;
+
+    try {
+        
+    } catch (error) {
+        
+    }
+
+
+
 
 });
 
