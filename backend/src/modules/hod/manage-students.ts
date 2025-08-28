@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient, UserType } from "../../generated/prisma";
+import { error } from "console";
 
 const prisma = new PrismaClient();
 
@@ -103,3 +104,66 @@ export async function viewStudent(req:Request, res:Response) {
     
 }
 
+// View students by batch
+
+export async function viewStudentsByBatch(req:Request, res:Response) {
+    const batchId = parseInt(req.params.batch);
+
+    try {
+
+        const students = await prisma.user.findMany({
+            where:{
+                type:UserType.STUDENT,
+                student:{
+                    batch:batchId
+                }
+            },
+            select:{
+                id:true,
+                name:true,
+                email:true,
+                type:true,
+                student:{
+                    select:{
+                        batch:true,
+                        rollNumber:true,
+                        course:true,
+                        isVerified:true
+                    }
+                }
+            }
+        });
+
+        if(!students) return res.status(400).json({
+            error:"no students found in this batch",
+        });
+
+        return res.status(200).json({
+            students
+        })
+        
+    } catch (error) {
+        
+    }
+    
+    
+}
+
+// add new student
+
+export async function addNewStudent(req:Request, res:Response) {
+
+       
+}
+
+// verify a student
+
+export async function verifyStudent(req:Request, res:Response) {
+    const userId = req.query.id;
+    
+    try {
+        
+    } catch (error) {
+        
+    }
+}

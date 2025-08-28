@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "../../generated/prisma";
-import { viewAllStudents, viewStudent } from "./manage-students";
+import { viewAllStudents, viewStudent, viewStudentsByBatch } from "./manage-students";
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -21,7 +21,8 @@ router.get("/student/:id", async (req:Request, res:Response) => {
 
 // View students of particular batch
 
-router.get("/:batch/:students", async (req, res) => {
+router.get("/:batch/students", async (req, res) => {
+    viewStudentsByBatch(req, res);
 
 });
 
@@ -40,6 +41,12 @@ router.post("/add-student", async (req, res) => {
 
 
 });
+
+// verify a student
+
+router.post('/:id/verify-student', async (req, res)=>{
+
+})
 
 
 
