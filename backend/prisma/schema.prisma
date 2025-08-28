@@ -48,6 +48,7 @@ model Hod {
 model Faculty {
   UserId    Int      @id
   phone     Int
+  department String
   isHOD     Boolean  @default(false)
   createdOn DateTime @default(now())
 

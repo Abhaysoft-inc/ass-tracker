@@ -2,8 +2,10 @@ import { Router } from "express";
 import { PrismaClient } from "../../generated/prisma";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import hashPassword from "../../utils/hashPassword";
 
 const prisma = new PrismaClient()
+const JWT_SECRET = process.env.JWT_SECRET || 'thisissecret';
 
 const router = Router();
 
@@ -39,7 +41,7 @@ router.post('/student/signup', async(req, res)=>{
 
     // if(user) throw Error("Email or Roll Number is already registered!");
 
-    const hashedPassword = await bcrypt.hash(password, 5);
+    const hashedPassword = await hashPassword(password);
     try {
         const newStudent = await prisma.user.create({
             data:{
@@ -62,10 +64,17 @@ router.post('/student/signup', async(req, res)=>{
         if(!newStudent) throw new Error("Student Registration Failed");
 
          console.log("user successfully registered: ", newStudent);
+         const jwt_token = await jwt.sign({
+            newStudent
+         }, JWT_SECRET);
+
+        //  console.log(jwt_token);
+         
             
             return res.status(200).json({
                 msg:"Student registration successfull",
-                student:newStudent
+                student:newStudent,
+                token:jwt_token
             });
     }
 
@@ -103,24 +112,65 @@ router.post('/student/login', async (req, res) => {
             error:"email or password is incorrectt"
         });
 
+        const jwt_token = await jwt.sign({student}, JWT_SECRET);
+
         res.status(200).json({
             msg:"User Login Success",
-            student:student
+            student:student,
+            token:jwt_token
         })
 
     } catch (error) {
+
+        console.log(error);
+        return res.status(401).json({
+            error: `Something went wrong: ${error}`
+        })
 
     }
 
 
 });
+
+
+// Faculty Registration
+
+router.post('/faculty/signup', async (req, res)=>{
+    
+})
+
+
+// Faculty login
 
 router.post('/faculty/login', async (req, res) => {
     const { email, password } = req.body;
 
     try {
 
+        const faculty = await prisma.user.findUnique({
+            where:{
+                email:email,
+            }
+        });
+
+        if(!faculty) return res.status(500).json({error:"Email or password is incorrect"});
+
+        const isPasswordCorrect = await bcrypt.compare(password, faculty.password);
+        if(!isPasswordCorrect) return res.send(500).json({error:"email or password is incorrect"});
+
+        const jwt_token = jwt.sign({faculty}, JWT_SECRET);
+
+        return res.status(200).json({
+            msg:"faculty login success",
+            jwt_token,
+            faculty
+        })
     } catch (error) {
+
+        console.log(error);
+        return res.status(401).json({
+            error:`something went wrong : ${error}`,
+        })
 
     }
 
@@ -128,6 +178,7 @@ router.post('/faculty/login', async (req, res) => {
 
 });
 
+// HOD Login
 router.post('/hod/login', async (req, res) => {
     const { email, password } = req.body;
 
