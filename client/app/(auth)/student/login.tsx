@@ -13,6 +13,7 @@ export default function StudentLoginScreen() {
   const [secure, setsecure] = useState(true);
 
 
+
   const handleLogin = async ()=>{
     
     if (!email || !password) {
@@ -24,18 +25,18 @@ export default function StudentLoginScreen() {
 
     try {
       console.log(email, password)
-      const response = await fetch("http://172.20.47.74:3000/auth/student/login", {
-        method:"POST",
-        headers:{
-          "Content-Type": "application/json",
-        },
-        body:JSON.stringify({email, password}),
-      });
+      // const response = await fetch("http://172.20.47.74:3000/auth/student/login", {
+      //   method:"POST",
+      //   headers:{
+      //     "Content-Type": "application/json",
+      //   },
+      //   body:JSON.stringify({email, password}),
+      // });
 
-      const data =  await response.json();
-      await SecureStore.setItemAsync("loginToken", data.token); // saving the token
-      const token = await SecureStore.getItemAsync("loginToken"); // fetching the token
-      Alert.alert("Saved Token", token?.toString());
+      // const data =  await response.json();
+      // await SecureStore.setItemAsync("loginToken", data.token); // saving the token
+      // const token = await SecureStore.getItemAsync("loginToken"); // fetching the token
+      // Alert.alert("Saved Token", token?.toString());
 
       router.push("/student/dashboard");
 
