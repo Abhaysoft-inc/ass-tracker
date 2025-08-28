@@ -2,6 +2,9 @@ import { View, Text, Image, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 
 export default function Index() {
+
+
+  
   const router =  useRouter();
   return (
     <View className="flex-1 bg-blue-50 p-10 pt-36">
