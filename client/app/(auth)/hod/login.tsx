@@ -1,22 +1,20 @@
-import { View, Text, TextInput, StyleSheet, Image, Button, ScrollView, Pressable } from 'react-native'
-import React, { useState } from 'react'
-import { Ionicons } from "@expo/vector-icons";
+import { View, Text, Image, ScrollView, StyleSheet, TextInput, Pressable } from 'react-native'
+import React, {useState} from 'react'
 import { useRouter } from 'expo-router';
+import { Ionicons } from "@expo/vector-icons";
 
-export default function StudentLoginScreen() {
 
-  const router = useRouter();
-
+export default function HODLoginScreen() {
+    const router = useRouter();
   
-  const [secure, setsecure] = useState(true);
-
-
+    
+    const [secure, setsecure] = useState(true);
   return (
-    <ScrollView>
+     <ScrollView>
 
       <View className='flex-1 items-center'>
         <Image source={require("../../../assets/images/knit-logo.png")} className='mt-36 object-cover' />
-        <Text className='text-4xl font-semibold pt-12'>Login as Student</Text>
+        <Text className='text-4xl font-semibold pt-12'>Login as HOD</Text>
 
         <View className='pt-24 w-full px-10'>
           <TextInput placeholder='Email' className="w-full border border-gray-400 rounded-lg px-5 py-4 text-base text-xl" />
@@ -34,24 +32,25 @@ export default function StudentLoginScreen() {
               <Ionicons
                 name={secure ? "eye-off" : "eye"}
                 size={24}
-                color="#1e40af"
+                color="#c92727ff"
               />
             </Pressable>
           </View>
 
-          <Pressable style={styles.button} onPress={()=>{router.push("/student/dashboard")}}>
-            <Text style={styles.text}>Login as Student</Text>
+          <Pressable style={styles.button} onPress={()=>{router.push("/hod/dashboard")}}>
+            <Text style={styles.text}>Login as HOD</Text>
           </Pressable>
 
         </View>
       </View>
     </ScrollView>
   )
-};
+}
+
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "#1e40af",
+    backgroundColor: "#c92727ff",
     height: 60,
     borderRadius: 10,
     alignItems: "center",

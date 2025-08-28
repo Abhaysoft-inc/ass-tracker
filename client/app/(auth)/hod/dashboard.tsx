@@ -1,10 +1,10 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-export default function HODLoginScreen() {
+export default function HODDashboard() {
   return (
     <View>
-      <Text>HODLoginScreen</Text>
+      <Text>HODDashboard</Text>
     </View>
   )
 }
