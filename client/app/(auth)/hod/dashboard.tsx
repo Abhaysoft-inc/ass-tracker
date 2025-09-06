@@ -4,7 +4,7 @@ import React from 'react'
 export default function HODDashboard() {
   return (
     <View>
-      <Text>HODDashboard</Text>
+      <Text></Text>
     </View>
   )
 }

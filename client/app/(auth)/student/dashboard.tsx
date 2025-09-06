@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 export default function StudentDashboard() {
   const schedule = [
     { time: '10:20 - 11:10 AM', subject: 'EM&I', teacher: 'R.K. Sir' },
-    { time: '11:20 - 12:10 PM', subject: 'Math', teacher: 'S.K. Maam' },
+    { time: '11:20 - 12:10 PM', subject: 'EMFT', teacher: 'D.K.P. Sir' },
     { time: '12:20 - 01:10 PM', subject: 'Physics', teacher: 'A.B. Sir' },
   ];
 
@@ -135,7 +135,7 @@ export default function StudentDashboard() {
   };
 
   return (
-    <View className="flex-1 bg-white p-5 pt-16">
+    <View className="flex-1 bg-white p-5 pt-24">
       <Text className="text-5xl mb-8 px-4">Hello, Abhay</Text>
 
       <Text className='px-5'>Upcoming Classes</Text>
@@ -200,7 +200,6 @@ export default function StudentDashboard() {
       </View>
 
       <Text className='text-center'> Department of Electrical Engineering</Text>
-      <Text className='text-center'>KNIT Sultanpur</Text>
       <Text className='text-xs text-center mt-2'>&copy; 2025 Team ASS</Text>
     </View>
   );
