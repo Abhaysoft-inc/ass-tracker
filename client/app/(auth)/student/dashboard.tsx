@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { useRouter } from 'expo-router';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 export default function StudentDashboard() {
@@ -100,18 +101,18 @@ export default function StudentDashboard() {
 
   const NotificationItem = ({ notification }) => {
     const color = getNotificationColor(notification.type);
-    
+
     return (
       <TouchableOpacity className="mb-3">
         <View className="flex-row items-start p-3 bg-white rounded-lg border border-gray-200">
           {/* Notification Icon */}
-          <View 
+          <View
             className="w-10 h-10 rounded-full items-center justify-center mr-3"
             style={{ backgroundColor: color + '20' }}
           >
             <Icon name={notification.icon} size={20} color={color} />
           </View>
-          
+
           {/* Content */}
           <View className="flex-1">
             <View className="flex-row items-center justify-between mb-1">
@@ -122,11 +123,11 @@ export default function StudentDashboard() {
                 <View className="bg-red-500 w-2 h-2 rounded-full ml-2"></View>
               )}
             </View>
-            
+
             <Text className="text-gray-600 text-sm mb-2" numberOfLines={2}>
               {notification.description}
             </Text>
-            
+
             <Text className="text-xs text-gray-400">{notification.time}</Text>
           </View>
         </View>
@@ -134,8 +135,17 @@ export default function StudentDashboard() {
     );
   };
 
+  const router = useRouter();
+
+  const handleMenuPress = (itemName: string) => {
+    if (itemName === 'Attendance') {
+      router.push('/(auth)/student/attendance');
+    }
+    // Add more navigation logic for other menu items if needed
+  };
+
   return (
-    <View className="flex-1 bg-white p-5 pt-24">
+    <ScrollView className="flex-1 bg-white p-5 pt-24" contentContainerStyle={{ flexGrow: 1 }}>
       <Text className="text-5xl mb-8 px-4">Hello, Abhay</Text>
 
       <Text className='px-5'>Upcoming Classes</Text>
@@ -165,7 +175,7 @@ export default function StudentDashboard() {
         </View>
 
         <View className='border border-gray-400 mt-3 h-64 rounded-xl bg-gray-50'>
-          <ScrollView 
+          <ScrollView
             className="flex-1 p-3"
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 10 }}
@@ -183,7 +193,7 @@ export default function StudentDashboard() {
               </View>
             )}
           </ScrollView>
-        </View>        
+        </View>
       </View>
 
       {/* grid here */}
@@ -192,6 +202,7 @@ export default function StudentDashboard() {
           <TouchableOpacity
             key={idx}
             className="w-[30%] aspect-square bg-gray-800 rounded-lg mb-4 justify-center items-center"
+            onPress={() => handleMenuPress(item.name)}
           >
             <Icon name={item.icon} size={30} color="#fff" className="mb-2" />
             <Text className="text-white text-center">{item.name}</Text>
@@ -200,7 +211,7 @@ export default function StudentDashboard() {
       </View>
 
       <Text className='text-center'> Department of Electrical Engineering</Text>
-      <Text className='text-xs text-center mt-2'>&copy; 2025 Team ASS</Text>
-    </View>
+      <Text className='text-xs text-center mt-2'>&copy; 2025 Team AAS</Text>
+    </ScrollView>
   );
 }
