@@ -1,0 +1,174 @@
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+
+// Dummy assignments data
+const assignmentsData = [
+    {
+        id: 1,
+        title: 'EM&I Assignment #1',
+        subject: 'EM&I',
+        batch: 'EE-2021',
+        faculty: 'Dr. R.K. Singh',
+        dueDate: '2025-10-15',
+        submittedCount: 45,
+        totalStudents: 60,
+        status: 'Active',
+    },
+    {
+        id: 2,
+        title: 'Circuit Analysis Lab Report',
+        subject: 'Circuit Analysis',
+        batch: 'EE-2022',
+        faculty: 'Dr. D.K. Pandey',
+        dueDate: '2025-10-12',
+        submittedCount: 50,
+        totalStudents: 65,
+        status: 'Active',
+    },
+    {
+        id: 3,
+        title: 'Physics Problem Set #3',
+        subject: 'Physics',
+        batch: 'EE-2023',
+        faculty: 'Dr. A.B. Sharma',
+        dueDate: '2025-10-08',
+        submittedCount: 70,
+        totalStudents: 70,
+        status: 'Completed',
+    },
+];
+
+export default function AssignmentsMonitoring() {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState('All');
+
+    const statuses = ['All', 'Active', 'Completed', 'Overdue'];
+
+    const filteredAssignments = assignmentsData.filter(assignment =>
+        (assignment.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            assignment.subject.toLowerCase().includes(searchQuery.toLowerCase())) &&
+        (selectedStatus === 'All' || assignment.status === selectedStatus)
+    );
+
+    const getSubmissionRate = (submitted: number, total: number) => {
+        return Math.round((submitted / total) * 100);
+    };
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'Active': return '#F59E0B';
+            case 'Completed': return '#10B981';
+            case 'Overdue': return '#EF4444';
+            default: return '#6B7280';
+        }
+    };
+
+    return (
+        <ScrollView className="flex-1 bg-white">
+            {/* Search and Filter */}
+            <View className="px-6 py-4">
+                <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-3 mb-4">
+                    <Icon name="search" size={20} color="#666" />
+                    <TextInput
+                        placeholder="Search assignments..."
+                        className="flex-1 ml-3 text-gray-800"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                    />
+                </View>
+
+                {/* Status Filter */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
+                    {statuses.map((status, idx) => (
+                        <TouchableOpacity
+                            key={idx}
+                            className={`px-4 py-2 rounded-full mr-3 ${selectedStatus === status ? 'bg-red-600' : 'bg-gray-200'
+                                }`}
+                            onPress={() => setSelectedStatus(status)}
+                        >
+                            <Text className={selectedStatus === status ? 'text-white' : 'text-gray-700'}>
+                                {status}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            </View>
+
+            {/* Summary Cards */}
+            <View className="px-6 mb-4">
+                <View className="flex-row justify-between">
+                    <View className="flex-1 bg-red-50 rounded-lg p-4 mr-2">
+                        <Text className="text-2xl font-bold text-red-600">{assignmentsData.length}</Text>
+                        <Text className="text-red-600 text-sm">Total Assignments</Text>
+                    </View>
+                    <View className="flex-1 bg-red-50 rounded-lg p-4 ml-2">
+                        <Text className="text-2xl font-bold text-red-600">
+                            {assignmentsData.filter(a => a.status === 'Active').length}
+                        </Text>
+                        <Text className="text-red-600 text-sm">Active</Text>
+                    </View>
+                </View>
+            </View>
+
+            {/* Assignments List */}
+            <View className="px-6">
+                <Text className="text-lg font-semibold mb-4">Assignments ({filteredAssignments.length})</Text>
+
+                {filteredAssignments.map((assignment) => {
+                    const submissionRate = getSubmissionRate(assignment.submittedCount, assignment.totalStudents);
+                    const statusColor = getStatusColor(assignment.status);
+
+                    return (
+                        <View key={assignment.id} className="bg-white rounded-lg border border-gray-200 p-4 mb-4 shadow-sm">
+                            <View className="flex-row items-center justify-between mb-2">
+                                <Text className="text-lg font-semibold text-gray-800 flex-1">{assignment.title}</Text>
+                                <View className="px-2 py-1 rounded" style={{ backgroundColor: statusColor + '20' }}>
+                                    <Text className="text-xs font-medium" style={{ color: statusColor }}>
+                                        {assignment.status}
+                                    </Text>
+                                </View>
+                            </View>
+
+                            <View className="flex-row justify-between mb-2">
+                                <Text className="text-sm text-gray-600">Subject: {assignment.subject}</Text>
+                                <Text className="text-sm text-gray-600">Batch: {assignment.batch}</Text>
+                            </View>
+
+                            <Text className="text-sm text-gray-600 mb-2">Faculty: {assignment.faculty}</Text>
+                            <Text className="text-sm text-gray-600 mb-3">Due Date: {assignment.dueDate}</Text>
+
+                            {/* Submission Progress */}
+                            <View className="mb-3">
+                                <View className="flex-row justify-between mb-1">
+                                    <Text className="text-sm text-gray-600">Submissions</Text>
+                                    <Text className="text-sm font-medium text-gray-800">
+                                        {assignment.submittedCount}/{assignment.totalStudents} ({submissionRate}%)
+                                    </Text>
+                                </View>
+                                <View className="w-full bg-gray-200 rounded-full h-2">
+                                    <View
+                                        className="h-2 rounded-full bg-red-600"
+                                        style={{ width: `${submissionRate}%` }}
+                                    />
+                                </View>
+                            </View>
+
+                            <View className="flex-row justify-end space-x-2">
+                                <TouchableOpacity className="bg-blue-100 px-3 py-2 rounded-lg mr-2">
+                                    <Text className="text-blue-600 text-sm">View Details</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity className="bg-green-100 px-3 py-2 rounded-lg mr-2">
+                                    <Text className="text-green-600 text-sm">Submissions</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity className="bg-orange-100 px-3 py-2 rounded-lg">
+                                    <Text className="text-orange-600 text-sm">Remind</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    );
+                })}
+            </View>
+        </ScrollView>
+    );
+}

@@ -4,6 +4,8 @@ import { useRouter } from 'expo-router';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 export default function StudentDashboard() {
+
+
   const schedule = [
     { time: '10:20 - 11:10 AM', subject: 'EM&I', teacher: 'R.K. Sir' },
     { time: '11:20 - 12:10 PM', subject: 'EMFT', teacher: 'D.K.P. Sir' },
@@ -84,7 +86,7 @@ export default function StudentDashboard() {
 
   const current = schedule[index];
 
-  const getNotificationColor = (type) => {
+  const getNotificationColor = (type: any) => {
     switch (type) {
       case 'assignment':
         return '#3B82F6'; // Blue
@@ -141,11 +143,25 @@ export default function StudentDashboard() {
     if (itemName === 'Attendance') {
       router.push('/(auth)/student/attendance');
     }
-    // Add more navigation logic for other menu items if needed
+    if (itemName === 'Assignments') {
+      router.push('/(auth)/student/assignments');
+    }
+    if (itemName === 'Syllabus') {
+      router.push('/(auth)/student/syllabus');
+    }
+    if (itemName === 'Notifications') {
+      router.push('/(auth)/student/notifications');
+    }
+    if (itemName === 'Circulars') {
+      router.push('/(auth)/student/circulars');
+    }
+    if (itemName === 'Events') {
+      router.push('/(auth)/student/events');
+    }
   };
 
   return (
-    <ScrollView className="flex-1 bg-white p-5 pt-24" contentContainerStyle={{ flexGrow: 1 }}>
+    <ScrollView className="flex-1 bg-white p-5 pt-16" contentContainerStyle={{ flexGrow: 1 }}>
       <Text className="text-5xl mb-8 px-4">Hello, Abhay</Text>
 
       <Text className='px-5'>Upcoming Classes</Text>

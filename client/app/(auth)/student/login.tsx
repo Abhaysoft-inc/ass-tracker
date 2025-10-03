@@ -14,13 +14,13 @@ export default function StudentLoginScreen() {
 
 
 
-  const handleLogin = async ()=>{
-    
+  const handleLogin = async () => {
+
     if (!email || !password) {
       Alert.alert("Error", "Please fill all fields");
       return;
     }
-    
+
     setLoading(true);
 
     try {
@@ -44,8 +44,8 @@ export default function StudentLoginScreen() {
     } catch (error) {
 
       console.log(error);
-      
-      
+
+
     }
   }
 
@@ -58,15 +58,15 @@ export default function StudentLoginScreen() {
         <Text className='text-4xl font-semibold pt-12'>Login as Student</Text>
 
         <View className='pt-24 w-full px-10'>
-          <TextInput placeholder='Email' className="w-full border border-gray-400 rounded-lg px-5 py-4 text-base text-xl" value={email} onChangeText={setEmail} />
-          
+          <TextInput placeholder='Email' className="w-full border border-gray-400 rounded-lg px-5 py-4 text-xl text-black" value={email} onChangeText={setEmail} />
+
 
           <View style={styles.container} className='border border-gray-400 rounded-lg'>
             <TextInput
               placeholder="Enter password"
               secureTextEntry={secure}
               style={styles.input}
-              className='text-xl py-4'
+              className='text-xl py-4 text-black'
               value={password}
               onChangeText={setPassword}
             />
@@ -84,8 +84,8 @@ export default function StudentLoginScreen() {
             <Text style={styles.text}>
 
               {loading ? "Loading...." : "Login as Student"}
-              
-                </Text>
+
+            </Text>
           </Pressable>
 
         </View>
