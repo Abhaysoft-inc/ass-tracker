@@ -98,7 +98,7 @@ export default function FacultyDashboard() {
             {/* Header */}
             <View className="bg-green-600 pt-16 pb-6 px-6">
                 <Text className="text-white text-3xl font-bold">Faculty Dashboard</Text>
-                <Text className="text-green-100 text-base mt-1">Dr. R.K. Singh - Electrical Engineering</Text>
+                <Text className="text-green-100 text-base mt-1">P.N. Verma - Electrical Engineering</Text>
             </View>
 
             {/* Current Class Section */}
