@@ -1,4 +1,4 @@
-interface Notifications {
+type Notifications = {
     id: Number
     type: String
     title: String

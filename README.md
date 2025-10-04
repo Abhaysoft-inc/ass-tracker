@@ -1,4 +1,4 @@
-# ASS Tracker App (Attendance Student Syllabus)
+# AAS Tracker App (Attendance Student Syllabus)
 
 > A full-stack application to manage student attendance, syllabus tracking, and more for educational institutions.
 
