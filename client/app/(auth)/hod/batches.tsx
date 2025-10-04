@@ -35,10 +35,10 @@ const batchesData = [
         id: 4,
         name: 'EE-2024',
         year: '2024-2028',
-        semester: '1st',
-        totalStudents: 72,
-        activeStudents: 72,
-        classTeacher: 'Dr. M.K. Verma',
+        semester: '3rd',
+        totalStudents: 90,
+        activeStudents: 88,
+        classTeacher: 'Dr. D.K.P',
     },
 ];
 
@@ -83,7 +83,7 @@ export default function BatchesManagement() {
                         </View>
 
                         <Text className="text-gray-600 mb-2">Academic Year: {batch.year}</Text>
-                        <Text className="text-gray-600 mb-3">Class Teacher: {batch.classTeacher}</Text>
+                        <Text className="text-gray-600 mb-3">Class Co-ordinator: {batch.classTeacher}</Text>
 
                         <View className="flex-row justify-between mb-4">
                             <View className="items-center">

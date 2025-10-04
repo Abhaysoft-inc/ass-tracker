@@ -5,12 +5,12 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 export default function FacultyDashboard() {
     // Current class data
     const currentClass = {
-        subject: 'EM&I',
-        batch: 'EE-2021',
-        time: '10:20 - 11:10 AM',
-        room: 'EE-101',
+        subject: 'Internship Assessment',
+        batch: 'EE-2024',
+        time: '09:30 - 11:10 AM',
+        room: 'EE Seminar Hall',
         studentsPresent: 45,
-        totalStudents: 60,
+        totalStudents: 90,
     };
 
     // Quick actions
@@ -120,12 +120,12 @@ export default function FacultyDashboard() {
                     <View className="flex-row justify-between mb-4">
                         <Text className="text-gray-700">Time: {currentClass.time}</Text>
                         <Text className="text-gray-700">
-                            Present: {currentClass.studentsPresent}/{currentClass.totalStudents}
+                            Total Students: {currentClass.totalStudents}
                         </Text>
                     </View>
 
                     {/* Attendance Progress Bar */}
-                    <View className="mb-4">
+                    {/* <View className="mb-4">
                         <Text className="text-sm text-gray-600 mb-2">Attendance Progress</Text>
                         <View className="w-full bg-gray-200 rounded-full h-3">
                             <View
@@ -136,7 +136,7 @@ export default function FacultyDashboard() {
                         <Text className="text-xs text-gray-500 mt-1">
                             {Math.round((currentClass.studentsPresent / currentClass.totalStudents) * 100)}% Present
                         </Text>
-                    </View>
+                    </View> */}
                 </View>
             </View>
 

@@ -11,31 +11,31 @@ const router = Router();
 
 // student auth
 
-// Student registration portal
+//  Student registration portal
 
 
 
-router.post('/student/signup', async(req, res)=>{
-    const {email, password, name, batch, course, rollNumber }  = req.body;
+router.post('/student/signup', async (req, res) => {
+    const { email, password, name, batch, course, rollNumber } = req.body;
 
     // check if user is already registered
 
     const user = await prisma.user.findFirst({
-        where:{
-            OR:[
-                {email:email},
-                {student:{rollNumber:rollNumber}}
+        where: {
+            OR: [
+                { email: email },
+                { student: { rollNumber: rollNumber } }
             ]
         },
-        include:{
-            student:true
+        include: {
+            student: true
         }
     })
 
-    if(user){
+    if (user) {
 
         return res.status(400).json({
-            error:"Email or Roll number already registered"
+            error: "Email or Roll number already registered"
         });
     }
 
@@ -44,44 +44,44 @@ router.post('/student/signup', async(req, res)=>{
     const hashedPassword = await hashPassword(password);
     try {
         const newStudent = await prisma.user.create({
-            data:{
-                name:name,
+            data: {
+                name: name,
                 password: hashedPassword,
-                email:email,
-                type:"STUDENT",
-                student:{
-                    create:{
-                        batch:batch,
-                        course:course,
-                        rollNumber:rollNumber,
-                        isVerified:false,
+                email: email,
+                type: "STUDENT",
+                student: {
+                    create: {
+                        batch: batch,
+                        course: course,
+                        rollNumber: rollNumber,
+                        isVerified: false,
 
                     }
                 }
             }
         });
 
-        if(!newStudent) throw new Error("Student Registration Failed");
+        if (!newStudent) throw new Error("Student Registration Failed");
 
-         console.log("user successfully registered: ", newStudent);
-         const jwt_token = await jwt.sign({
+        console.log("user successfully registered: ", newStudent);
+        const jwt_token = await jwt.sign({
             newStudent
-         }, JWT_SECRET);
+        }, JWT_SECRET);
 
         //  console.log(jwt_token);
-         
-            
-            return res.status(200).json({
-                msg:"Student registration successfull",
-                student:newStudent,
-                token:jwt_token
-            });
+
+
+        return res.status(200).json({
+            msg: "Student registration successfull",
+            student: newStudent,
+            token: jwt_token
+        });
     }
 
-    catch(error){
+    catch (error) {
         console.log(error);
         res.status(500).json({
-            error:`Student Registration Failed: ${error}`
+            error: `Student Registration Failed: ${error}`
         })
 
     }
@@ -97,27 +97,27 @@ router.post('/student/login', async (req, res) => {
     try {
 
         const student = await prisma.user.findUnique({
-            where:{
-                email:email
+            where: {
+                email: email
             }
         });
 
-        if(!student) return res.status(400).json({
-            error:"Email or Password is incorrect"
-        }) ;
+        if (!student) return res.status(400).json({
+            error: "Email or Password is incorrect"
+        });
 
         const isPasswordCorrect = await bcrypt.compare(password, student.password);
 
-        if(!isPasswordCorrect) return res.status(401).json({
-            error:"email or password is incorrectt"
+        if (!isPasswordCorrect) return res.status(401).json({
+            error: "email or password is incorrectt"
         });
 
-        const jwt_token = await jwt.sign({student}, JWT_SECRET);
+        const jwt_token = await jwt.sign({ student }, JWT_SECRET);
 
         res.status(200).json({
-            msg:"User Login Success",
-            student:student,
-            token:jwt_token
+            msg: "User Login Success",
+            student: student,
+            token: jwt_token
         })
 
     } catch (error) {
@@ -135,9 +135,9 @@ router.post('/student/login', async (req, res) => {
 
 // Faculty Registration
 
-router.post('/faculty/signup', async (req, res)=>{
-    
-})
+router.post('/faculty/signup', async (req, res) => {
+
+});
 
 
 // Faculty login
@@ -148,20 +148,20 @@ router.post('/faculty/login', async (req, res) => {
     try {
 
         const faculty = await prisma.user.findUnique({
-            where:{
-                email:email,
+            where: {
+                email: email,
             }
         });
 
-        if(!faculty) return res.status(500).json({error:"Email or password is incorrect"});
+        if (!faculty) return res.status(500).json({ error: "Email or password is incorrect" });
 
         const isPasswordCorrect = await bcrypt.compare(password, faculty.password);
-        if(!isPasswordCorrect) return res.send(500).json({error:"email or password is incorrect"});
+        if (!isPasswordCorrect) return res.send(500).json({ error: "email or password is incorrect" });
 
-        const jwt_token = jwt.sign({faculty}, JWT_SECRET);
+        const jwt_token = jwt.sign({ faculty }, JWT_SECRET);
 
         return res.status(200).json({
-            msg:"faculty login success",
+            msg: "faculty login success",
             jwt_token,
             faculty
         })
@@ -169,7 +169,7 @@ router.post('/faculty/login', async (req, res) => {
 
         console.log(error);
         return res.status(401).json({
-            error:`something went wrong : ${error}`,
+            error: `something went wrong : ${error}`,
         })
 
     }
@@ -208,6 +208,6 @@ router.post('/hod/login', async (req, res) => {
     }
 
 
-})
+});
 
 export default router;

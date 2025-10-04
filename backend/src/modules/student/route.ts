@@ -12,8 +12,23 @@ router.get("/view-attendance", async (req, res) => {
 
 // Todo: fetch the informations like the current class and the batch so that user can get the schedules as per their semester
 
-router.get("/view-notifications", async (req, res) => {
+router.get("/view-syllabus", async (req, res) => {
+    // Todo: implement function to retreive the attendance of current user
+});
 
+router.get("/view-assignments", async (req, res) => {
+    // Todo: implement function to retreive the attendance of current user
+});
+
+router.get("/view-notifications", async (req, res) => {
+    // Todo: implement function to retreive the attendance of current user
+});
+
+router.get("/view-circulars", async (req, res) => {
+    // Todo: implement function to retreive the attendance of current user
+});
+router.get("/view-events", async (req, res) => {
+    // Todo: implement function to retreive the attendance of current user
 });
 
 // Todo: fetch schedules using the current class and batch

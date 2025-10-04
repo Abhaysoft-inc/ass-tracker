@@ -1,0 +1,178 @@
+// Improved Prisma Schema for better scalability
+
+generator client {
+    provider = "prisma-client-js"
+    output   = "../src/generated/prisma"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id        Int      @id @default(autoincrement())
+    name      String
+    email     String   @unique
+    password  String
+    type      UserType
+    isActive  Boolean  @default(true)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    student Student?
+    faculty Faculty?
+
+    @@index([email])
+    @@index([type])
+}
+
+model Student {
+    id         Int      @id @default(autoincrement())
+    userId     Int      @unique
+    rollNumber String   @unique // Changed to String for flexibility
+    course     String
+    batchId    Int?
+    isVerified Boolean  @default(false)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    batch Batch? @relation(fields: [batchId], references: [id])
+
+    // Relations for future features
+    assignments   Assignment[]
+    attendances   Attendance[]
+    notifications Notification[]
+
+    @@index([rollNumber])
+    @@index([batchId])
+    @@index([course])
+}
+
+model Faculty {
+    id         Int      @id @default(autoincrement())
+    userId     Int      @unique
+    phone      String // Changed to String
+    department String
+    isHOD      Boolean  @default(false)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    // Relations
+    batches       BatchFaculty[]
+    assignments   Assignment[]
+    notifications Notification[]
+
+    @@index([department])
+    @@index([isHOD])
+}
+
+model Batch {
+    id         Int      @id @default(autoincrement())
+    name       String
+    course     String
+    department String
+    year       Int
+    semester   Int
+    capacity   Int      @default(60)
+    isActive   Boolean  @default(true)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    // Relations
+    students    Student[]
+    faculties   BatchFaculty[]
+    assignments Assignment[]
+    attendances Attendance[]
+
+    @@unique([name, course, year, semester])
+    @@index([course])
+    @@index([department])
+    @@index([year, semester])
+}
+
+// Junction table for many-to-many relationship between Batch and Faculty
+model BatchFaculty {
+    id        Int      @id @default(autoincrement())
+    batchId   Int
+    facultyId Int
+    subject   String
+    createdAt DateTime @default(now())
+
+    batch   Batch   @relation(fields: [batchId], references: [id], onDelete: Cascade)
+    faculty Faculty @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+
+    @@unique([batchId, facultyId, subject])
+}
+
+// Additional models for scalability
+model Assignment {
+    id          Int      @id @default(autoincrement())
+    title       String
+    description String?
+    dueDate     DateTime
+    maxMarks    Int
+    batchId     Int
+    facultyId   Int
+    isActive    Boolean  @default(true)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    batch    Batch     @relation(fields: [batchId], references: [id])
+    faculty  Faculty   @relation(fields: [facultyId], references: [id])
+    students Student[]
+
+    @@index([batchId])
+    @@index([facultyId])
+    @@index([dueDate])
+}
+
+model Attendance {
+    id        Int      @id @default(autoincrement())
+    date      DateTime
+    isPresent Boolean
+    studentId Int
+    batchId   Int
+    createdAt DateTime @default(now())
+
+    student Student @relation(fields: [studentId], references: [id])
+    batch   Batch   @relation(fields: [batchId], references: [id])
+
+    @@unique([date, studentId, batchId])
+    @@index([date])
+    @@index([studentId])
+    @@index([batchId])
+}
+
+model Notification {
+    id        Int              @id @default(autoincrement())
+    title     String
+    message   String
+    type      NotificationType
+    isRead    Boolean          @default(false)
+    studentId Int?
+    facultyId Int?
+    createdAt DateTime         @default(now())
+
+    student Student? @relation(fields: [studentId], references: [id])
+    faculty Faculty? @relation(fields: [facultyId], references: [id])
+
+    @@index([studentId])
+    @@index([facultyId])
+    @@index([createdAt])
+}
+
+enum UserType {
+    STUDENT
+    FACULTY
+}
+
+enum NotificationType {
+    ASSIGNMENT
+    ATTENDANCE
+    GENERAL
+    URGENT
+}

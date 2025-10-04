@@ -15,44 +15,78 @@ datasource db {
 }
 
 model User {
-  id       Int      @id @default(autoincrement())
-  name     String
-  email    String   @unique
-  password String
-  type     UserType
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  type      UserType
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   student Student?
   hod     Hod?
   faculty Faculty?
+
+  @@index([email])
+  @@index([type])
 }
 
 model Student {
-  userId     Int    @id
-  rollNumber Int    @unique
+  userId     Int      @id
+  rollNumber String   @unique // Changed to String for flexibility
   course     String
-  batch      Int
-  isVerified Boolean @default(false)
+  batchId    Int? // Foreign key to Batches
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  batch Batches? @relation(fields: [batchId], references: [BatchId])
+
+  @@index([rollNumber])
+  @@index([batchId])
 }
 
 model Hod {
-  UserId     Int      @id
+  userId     Int      @id // Changed to camelCase for consistency
   department String
-  phone      Int
+  phone      String // Changed to String for phone numbers
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 
-  user User @relation(fields: [UserId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([department])
 }
 
 model Faculty {
-  UserId    Int      @id
-  phone     Int
+  userId     Int      @id // Changed to camelCase for consistency
+  phone      String // Changed to String for phone numbers
   department String
-  isHOD     Boolean  @default(false)
-  createdAt DateTime @default(now())
+  isHOD      Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 
-  user User @relation(fields: [UserId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([department])
+  @@index([isHOD])
+}
+
+model Batches {
+  BatchId   Int      @id @default(autoincrement())
+  BatchName String
+  course    String
+  // capacity  Int      @default(60)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  students Student[] // One-to-many relationship
+
+  @@index([course])
+  @@index([BatchName])
 }
 
 enum UserType {
@@ -60,3 +94,10 @@ enum UserType {
   FACULTY
   HOD
 }
+
+// Still Missing (for 10/10):
+
+// Separate table for assignments/attendance tracking
+// Many-to-many relationships (faculty-batch)
+// Soft delete implementation
+// More comprehensive indexing for complex queries

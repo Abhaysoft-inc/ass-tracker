@@ -7,9 +7,9 @@ export default function StudentDashboard() {
 
 
   const schedule = [
-    { time: '10:20 - 11:10 AM', subject: 'EM&I', teacher: 'R.K. Sir' },
+    { time: '10:20 - 11:10 AM', subject: 'EM&I', teacher: 'Bhagat Sir' },
     { time: '11:20 - 12:10 PM', subject: 'EMFT', teacher: 'D.K.P. Sir' },
-    { time: '12:20 - 01:10 PM', subject: 'Physics', teacher: 'A.B. Sir' },
+    { time: '12:20 - 01:10 PM', subject: 'BSS', teacher: 'Ashutosh Sir' },
   ];
 
   const menuItems = [
