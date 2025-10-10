@@ -1,10 +1,38 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, BackHandler } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, BackHandler, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useFocusEffect } from '@react-navigation/native';
+import * as SecureStore from 'expo-secure-store';
 
 export default function StudentDashboard() {
+  const router = useRouter();
+
+  // Logout function
+  const handleLogout = async () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await SecureStore.deleteItemAsync('loginToken');
+              router.replace('/');
+            } catch (error) {
+              console.error('Logout error:', error);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   // Prevent back navigation to login screen
   useFocusEffect(
@@ -115,7 +143,7 @@ export default function StudentDashboard() {
     }
   };
 
-  const NotificationItem = ({ notification }) => {
+  const NotificationItem = ({ notification }: { notification: any }) => {
     const color = getNotificationColor(notification.type);
 
     return (
@@ -151,8 +179,6 @@ export default function StudentDashboard() {
     );
   };
 
-  const router = useRouter();
-
   const handleMenuPress = (itemName: string) => {
     if (itemName === 'Attendance') {
       router.push('/(auth)/student/attendance');
@@ -176,7 +202,15 @@ export default function StudentDashboard() {
 
   return (
     <ScrollView className="flex-1 bg-white p-5 pt-16" contentContainerStyle={{ flexGrow: 1 }}>
-      <Text className="text-5xl mb-8 px-4">Hello, Abhay</Text>
+      <View className="flex-row items-center justify-between mb-8 px-4">
+        <Text className="text-5xl">Hello, Abhay</Text>
+        <TouchableOpacity
+          onPress={handleLogout}
+          className="bg-red-500 px-4 py-2 rounded-lg"
+        >
+          <Text className="text-white font-semibold">Logout</Text>
+        </TouchableOpacity>
+      </View>
 
       <Text className='px-5'>Upcoming Classes</Text>
 
