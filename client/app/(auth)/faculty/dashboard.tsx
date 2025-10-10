@@ -1,8 +1,26 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, BackHandler } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function FacultyDashboard() {
+    const router = useRouter();
+
+    // Prevent back navigation to login screen
+    useFocusEffect(
+        React.useCallback(() => {
+            const onBackPress = () => {
+                // Return true to prevent default back action
+                return true;
+            };
+
+            const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            return () => subscription?.remove();
+        }, [])
+    );
+
     // Current class data
     const currentClass = {
         subject: 'Internship Assessment',
@@ -147,6 +165,15 @@ export default function FacultyDashboard() {
                     {quickActions.map((action, idx) => (
                         <TouchableOpacity
                             key={idx}
+                            onPress={() => {
+                                if (action.name === 'Take Attendance') {
+                                    router.push('/faculty/take-attendance');
+                                } else if (action.name === 'Transfer Class') {
+                                    router.push('/faculty/transfer-class');
+                                } else if (action.name === 'Request Past Attendance') {
+                                    router.push('/faculty/request-past-attendance');
+                                }
+                            }}
                             className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm flex-row items-center"
                         >
                             <View

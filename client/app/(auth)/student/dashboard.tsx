@@ -1,10 +1,24 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, BackHandler } from 'react-native';
 import { useRouter } from 'expo-router';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function StudentDashboard() {
 
+  // Prevent back navigation to login screen
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        // Return true to prevent default back action
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => subscription?.remove();
+    }, [])
+  );
 
   const schedule = [
     { time: '10:20 - 11:10 AM', subject: 'EM&I', teacher: 'Bhagat Sir' },

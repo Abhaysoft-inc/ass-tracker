@@ -1,10 +1,26 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, BackHandler, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useFocusEffect } from '@react-navigation/native';
+import * as SecureStore from 'expo-secure-store';
 
 export default function HODDashboard() {
   const router = useRouter();
+
+  // Prevent back navigation to login screen
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        // Return true to prevent default back action
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => subscription?.remove();
+    }, [])
+  );
 
   const managementItems = [
     { name: 'Students', icon: 'school', description: 'Manage student records' },
@@ -40,12 +56,58 @@ export default function HODDashboard() {
     router.push(`/(auth)/hod/${route}` as any);
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              // Clear stored HOD data
+              await SecureStore.deleteItemAsync("hodData");
+              console.log("HOD data cleared");
+
+              // Navigate back to main screen
+              router.dismissAll();
+              router.replace("/");
+            } catch (error) {
+              console.log("Logout error:", error);
+              // Even if there's an error, still navigate back
+              router.dismissAll();
+              router.replace("/");
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <ScrollView className="flex-1 bg-white" contentContainerStyle={{ flexGrow: 1 }}>
       {/* Header */}
       <View className="bg-red-600 pt-16 pb-6 px-6">
-        <Text className="text-white text-3xl font-bold">HOD Dashboard</Text>
-        <Text className="text-red-100 text-base mt-1">Department of Electrical Engineering</Text>
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1">
+            <Text className="text-white text-3xl font-bold">HOD Dashboard</Text>
+            <Text className="text-red-100 text-base mt-1">Department of Electrical Engineering</Text>
+          </View>
+
+          {/* Logout Button */}
+          <TouchableOpacity
+            onPress={handleLogout}
+            className="bg-red-500 px-4 py-2 rounded-lg flex-row items-center"
+          >
+            <Icon name="logout" size={20} color="white" />
+            <Text className="text-white font-medium ml-2">Logout</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Quick Stats */}

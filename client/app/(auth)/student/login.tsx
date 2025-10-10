@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store'; //using this to save the token and then logging in using it
+import { BASE_URL } from '../../../config/api';
 
 export default function StudentLoginScreen() {
   const router = useRouter();
@@ -25,27 +26,34 @@ export default function StudentLoginScreen() {
 
     try {
       console.log(email, password)
-      // const response = await fetch("http://172.20.47.74:3000/auth/student/login", {
-      //   method:"POST",
-      //   headers:{
-      //     "Content-Type": "application/json",
-      //   },
-      //   body:JSON.stringify({email, password}),
-      // });
+      const response = await fetch(`${BASE_URL}/auth/student/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-      // const data =  await response.json();
-      // await SecureStore.setItemAsync("loginToken", data.token); // saving the token
-      // const token = await SecureStore.getItemAsync("loginToken"); // fetching the token
-      // Alert.alert("Saved Token", token?.toString());
+      const data = await response.json();
 
-      router.push("/student/dashboard");
+      if (response.ok && data.token) {
+        // Ensure token is a string before storing
+        await SecureStore.setItemAsync("loginToken", String(data.token));
+        const token = await SecureStore.getItemAsync("loginToken");
+        console.log("Saved Token:", token);
 
-      // Alert.alert(data);
+        // Reset navigation stack to prevent going back to login
+        router.dismissAll();
+        router.replace("/student/dashboard");
+        Alert.alert("Success", "Login successful!");
+      } else {
+        Alert.alert("Error", data.message || "Login failed");
+      }
     } catch (error) {
-
-      console.log(error);
-
-
+      console.log("Login error:", error);
+      Alert.alert("Error", "Network error. Please try again.");
+    } finally {
+      setLoading(false);
     }
   }
 

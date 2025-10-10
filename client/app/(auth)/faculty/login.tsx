@@ -36,7 +36,10 @@ export default function FacultyLoginScreen() {
             </Pressable>
           </View>
 
-          <Pressable style={styles.button} onPress={() => { router.push("/faculty/dashboard") }}>
+          <Pressable style={styles.button} onPress={() => {
+            router.dismissAll();
+            router.replace("/faculty/dashboard");
+          }}>
             <Text style={styles.text}>Login as Faculty</Text>
           </Pressable>
 

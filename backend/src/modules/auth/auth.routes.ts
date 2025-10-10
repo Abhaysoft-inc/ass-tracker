@@ -189,25 +189,33 @@ router.post('/hod/login', async (req, res) => {
             },
         });
 
-        if (!hod) throw Error("Email or Password is Incorrect");
+        if (!hod) {
+            return res.status(400).json({
+                error: "Email or Password is Incorrect"
+            });
+        }
 
         const hashedPassword = hod.password;
 
         const isPasswordCorrect = await bcrypt.compare(password, hashedPassword);
 
-        if (!isPasswordCorrect) throw Error("Email or Password is incorrect");
+        if (!isPasswordCorrect) {
+            return res.status(401).json({
+                error: "Email or Password is incorrect"
+            });
+        }
 
         return res.status(200).json({
             msg: "login successfull",
             hod: hod
         });
 
-
     } catch (error) {
-        throw Error(`Something went wrong: ${error}`);
+        console.log("HOD login error:", error);
+        return res.status(500).json({
+            error: `Something went wrong: ${error}`
+        });
     }
-
-
 });
 
 export default router;
