@@ -22,6 +22,16 @@ export default function RootLayout() {
         />
 
         <Stack.Screen
+          name="(auth)/student/signup"   // full path from app/
+          options={{
+            title: "Student Registration",
+            headerStyle: { backgroundColor: "#1e40af" },
+            headerTintColor: "#fff",
+            headerTitleAlign: "center",
+          }}
+        />
+
+        <Stack.Screen
           name="(auth)/faculty/login"
           options={{
             title: "Faculty Login",

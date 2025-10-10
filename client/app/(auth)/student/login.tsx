@@ -1,4 +1,4 @@
-import { View, Text, TextInput, StyleSheet, Image, Button, ScrollView, Pressable, Alert } from 'react-native'
+import { View, Text, TextInput, StyleSheet, Image, ScrollView, Pressable, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from 'expo-router';
@@ -95,6 +95,14 @@ export default function StudentLoginScreen() {
 
             </Text>
           </Pressable>
+
+          {/* Registration Link */}
+          <View className="flex-row justify-center items-center mt-6">
+            <Text className="text-gray-600">New student? </Text>
+            <Pressable onPress={() => router.push("/student/signup")}>
+              <Text className="text-blue-600 font-semibold">Create Account</Text>
+            </Pressable>
+          </View>
 
         </View>
       </View>

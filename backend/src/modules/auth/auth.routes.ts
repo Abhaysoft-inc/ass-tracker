@@ -15,76 +15,109 @@ const router = Router();
 
 
 
-router.post('/student/signup', async (req, res) => {
-    const { email, password, name, batch, course, rollNumber } = req.body;
+router.post('/student/register', async (req, res) => {
+    const { email, password, name, rollNumber, course, phone, batchId } = req.body;
 
-    // check if user is already registered
-
-    const user = await prisma.user.findFirst({
-        where: {
-            OR: [
-                { email: email },
-                { student: { rollNumber: rollNumber } }
-            ]
-        },
-        include: {
-            student: true
-        }
-    })
-
-    if (user) {
-
+    // Validation
+    if (!email || !password || !name || !rollNumber || !course) {
         return res.status(400).json({
-            error: "Email or Roll number already registered"
+            success: false,
+            message: "Please provide all required fields: name, email, password, rollNumber, course"
         });
     }
 
-    // if(user) throw Error("Email or Roll Number is already registered!");
-
-    const hashedPassword = await hashPassword(password);
+    // Check if user is already registered
     try {
+        const existingUser = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email: email.toLowerCase().trim() },
+                    { student: { rollNumber: rollNumber.trim() } }
+                ]
+            },
+            include: {
+                student: true
+            }
+        });
+
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: "Email or Roll number already registered"
+            });
+        }
+
+        // Validate batch if provided
+        if (batchId) {
+            const batch = await prisma.batches.findUnique({
+                where: { BatchId: parseInt(batchId) }
+            });
+
+            if (!batch) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid batch selected"
+                });
+            }
+        }
+
+        const hashedPassword = await hashPassword(password);
+        
         const newStudent = await prisma.user.create({
             data: {
-                name: name,
+                name: name.trim(),
                 password: hashedPassword,
-                email: email,
+                email: email.toLowerCase().trim(),
                 type: "STUDENT",
                 student: {
                     create: {
-                        batch: batch,
-                        course: course,
-                        rollNumber: rollNumber,
-                        isVerified: false,
-
+                        rollNumber: rollNumber.trim(),
+                        course: course.trim(),
+                        phone: phone?.trim() || null,
+                        batchId: batchId ? parseInt(batchId) : null,
+                        isVerified: false
+                    }
+                }
+            },
+            include: {
+                student: {
+                    include: {
+                        batch: true
                     }
                 }
             }
         });
 
-        if (!newStudent) throw new Error("Student Registration Failed");
+        console.log("Student successfully registered: ", newStudent.name);
 
-        console.log("user successfully registered: ", newStudent);
-        const jwt_token = await jwt.sign({
-            newStudent
-        }, JWT_SECRET);
+        return res.status(201).json({
+            success: true,
+            message: "Registration successful! Your account is pending HOD verification.",
+            data: {
+                id: newStudent.id,
+                name: newStudent.name,
+                email: newStudent.email,
+                rollNumber: newStudent.student?.rollNumber,
+                course: newStudent.student?.course,
+                isVerified: newStudent.student?.isVerified
+            }
+        });
 
-        //  console.log(jwt_token);
-
-
-        return res.status(200).json({
-            msg: "Student registration successfull",
-            student: newStudent,
-            token: jwt_token
+    } catch (error) {
+        console.error("Student Registration Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Registration failed. Please try again.",
+            error: process.env.NODE_ENV === 'development' ? error : undefined
         });
     }
+});
 
-    catch (error) {
-        console.log(error);
-        res.status(500).json({
-            error: `Student Registration Failed: ${error}`
-        })
-
-    }
+// Alias for backward compatibility
+router.post('/student/signup', async (req, res) => {
+    // Use the same logic as register endpoint
+    req.url = '/student/register';
+    return;
 });
 
 // Student login user
