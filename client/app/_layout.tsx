@@ -64,6 +64,16 @@ export default function RootLayout() {
         />
 
         <Stack.Screen
+          name="(auth)/hod/student-detail"
+          options={{
+            title: "Student's Details",
+            headerStyle: { backgroundColor: "#c92727ff" },
+            headerTintColor: "#fff",
+            headerTitleAlign: "center",
+          }}
+        />
+
+        <Stack.Screen
           name="(auth)/hod/faculty"
           options={{
             title: "Faculty Management",

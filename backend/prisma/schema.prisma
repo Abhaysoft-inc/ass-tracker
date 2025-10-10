@@ -37,6 +37,7 @@ model Student {
   rollNumber String   @unique // Changed to String for flexibility
   course     String
   batchId    Int? // Foreign key to Batches
+  phone      String? // Phone number for student contact
   isVerified Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now()) @updatedAt
@@ -75,13 +76,14 @@ model Faculty {
 }
 
 model Batches {
-  BatchId   Int      @id @default(autoincrement())
-  BatchName String
-  course    String
+  BatchId         Int      @id @default(autoincrement())
+  BatchName       String
+  course          String
+  currentSemester Int      @default(1) // Current semester for the batch
   // capacity  Int      @default(60)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now()) @updatedAt
 
   students Student[] // One-to-many relationship
 

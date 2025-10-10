@@ -1,48 +1,65 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { BASE_URL } from '../../../config/api';
+import { useRouter } from 'expo-router';
 
-// Dummy students data
-const studentsData = [
-    {
-        id: 1,
-        name: 'Abhay Vishwakarma',
-        rollNo: 'EE2021001',
-        batch: 'EE-2021',
-        semester: '6th',
-        phone: '9876543210',
-        email: 'abhay@student.knit.ac.in',
-        attendance: '85%',
-    },
-    {
-        id: 2,
-        name: 'Rahul Sharma',
-        rollNo: 'EE2021002',
-        batch: 'EE-2021',
-        semester: '6th',
-        phone: '9876543211',
-        email: 'rahul@student.knit.ac.in',
-        attendance: '92%',
-    },
-    {
-        id: 3,
-        name: 'Priya Singh',
-        rollNo: 'EE2021003',
-        batch: 'EE-2021',
-        semester: '6th',
-        phone: '9876543212',
-        email: 'priya@student.knit.ac.in',
-        attendance: '78%',
-    },
-];
+
 
 export default function StudentsManagement() {
+    const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedBatch, setSelectedBatch] = useState('All');
+    const [students, setStudents] = useState<any[]>([]);
+    const [fetchingStudents, setFetchingStudents] = useState(false);
 
     const batches = ['All', 'EE-2021', 'EE-2022', 'EE-2023', 'EE-2024'];
 
-    const filteredStudents = studentsData.filter(student =>
+    // Fetch all students from API
+    const fetchAllStudents = async () => {
+        setFetchingStudents(true);
+        try {
+            const response = await fetch(`${BASE_URL}/hod/students`);
+            const data = await response.json();
+
+            if (response.ok && data.success && data.data) {
+                // Transform API data to match our UI format
+                const transformedStudents = data.data.map((student: any) => ({
+                    id: student.id,
+                    name: student.name,
+                    rollNo: student.student?.rollNumber || 'N/A',
+                    batch: student.student?.batch?.BatchName || 'Unknown',
+                    semester: student.student?.batch?.currentSemester ? `${student.student.batch.currentSemester}${student.student.batch.currentSemester === 1 ? 'st' : student.student.batch.currentSemester === 2 ? 'nd' : student.student.batch.currentSemester === 3 ? 'rd' : 'th'}` : 'N/A',
+                    phone: student.student?.phone || 'N/A',
+                    email: student.email,
+                    attendance: 'N/A', // Not in API response
+                }));
+                setStudents(transformedStudents);
+            } else {
+                Alert.alert('Error', 'Failed to fetch students');
+            }
+        } catch (error) {
+            console.log('Error fetching students:', error);
+            Alert.alert('Error', 'Network error. Please try again.');
+        } finally {
+            setFetchingStudents(false);
+        }
+    };
+
+    // Navigate to student detail page
+    const viewStudentDetails = (studentId: number) => {
+        router.push({
+            pathname: '/(auth)/hod/student-detail',
+            params: { id: studentId }
+        });
+    };
+
+    // Fetch students when component mounts
+    useEffect(() => {
+        fetchAllStudents();
+    }, []);
+
+    const filteredStudents = students.filter(student =>
         student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         student.rollNo.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -113,8 +130,11 @@ export default function StudentsManagement() {
                             <TouchableOpacity className="bg-blue-100 px-3 py-2 rounded-lg mr-2">
                                 <Text className="text-blue-600 text-sm">Edit</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity className="bg-green-100 px-3 py-2 rounded-lg mr-2">
-                                <Text className="text-green-600 text-sm">View</Text>
+                            <TouchableOpacity
+                                className="bg-green-100 px-3 py-2 rounded-lg mr-2"
+                                onPress={() => viewStudentDetails(student.id)}
+                            >
+                                <Text className="text-green-600 text-sm">View Details</Text>
                             </TouchableOpacity>
                             <TouchableOpacity className="bg-red-100 px-3 py-2 rounded-lg">
                                 <Text className="text-red-600 text-sm">Delete</Text>
@@ -123,6 +143,14 @@ export default function StudentsManagement() {
                     </View>
                 ))}
             </View>
+
+            {/* Loading indicator for fetching students */}
+            {fetchingStudents && (
+                <View className="items-center py-8">
+                    <ActivityIndicator size="large" color="#DC2626" />
+                    <Text className="text-gray-600 mt-2">Loading students...</Text>
+                </View>
+            )}
         </ScrollView>
     );
 }

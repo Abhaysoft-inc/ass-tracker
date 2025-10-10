@@ -25,7 +25,11 @@ export async function viewAllStudents(req: Request, res: Response) {
             skip,
             take: limit,
             include: {
-                student: true // joins student table
+                student: {
+                    include: {
+                        batch: true // Include batch information with current semester
+                    }
+                }
             }
         });
 
@@ -34,11 +38,14 @@ export async function viewAllStudents(req: Request, res: Response) {
         if (!students) throw Error("No Students found!");
 
         return res.status(200).json({
-            students,
-            page,
-            limit,
-            totalCount,
-            totalPages: Math.ceil(totalCount / limit)
+            success: true,
+            data: students,
+            pagination: {
+                page,
+                limit,
+                totalCount,
+                totalPages: Math.ceil(totalCount / limit)
+            }
         });
 
 
@@ -75,23 +82,34 @@ export async function viewStudent(req: Request, res: Response) {
                 name: true,
                 email: true,
                 type: true,
+                createdAt: true,
                 student: {
                     select: {
                         rollNumber: true,
                         course: true,
-                        batch: true,
-                        isVerified: true
+                        phone: true,
+                        isVerified: true,
+                        batch: {
+                            select: {
+                                BatchId: true,
+                                BatchName: true,
+                                course: true,
+                                currentSemester: true
+                            }
+                        }
                     }
                 }
             }
         });
 
         if (!student) return res.status(404).json({
-            error: "Student not found"
+            success: false,
+            message: "Student not found"
         })
 
         return res.status(200).json({
-            student
+            success: true,
+            data: student
         })
     } catch (error) {
 
@@ -114,7 +132,7 @@ export async function viewStudentsByBatch(req: Request, res: Response) {
             where: {
                 type: UserType.STUDENT,
                 student: {
-                    batch: batchId
+                    batchId: batchId
                 }
             },
             select: {
@@ -124,21 +142,31 @@ export async function viewStudentsByBatch(req: Request, res: Response) {
                 type: true,
                 student: {
                     select: {
-                        batch: true,
                         rollNumber: true,
                         course: true,
-                        isVerified: true
+                        phone: true,
+                        isVerified: true,
+                        batch: {
+                            select: {
+                                BatchId: true,
+                                BatchName: true,
+                                course: true,
+                                currentSemester: true
+                            }
+                        }
                     }
                 }
             }
         });
 
-        if (!students) return res.status(400).json({
-            error: "no students found in this batch",
+        if (!students || students.length === 0) return res.status(404).json({
+            success: false,
+            message: "No students found in this batch"
         });
 
         return res.status(200).json({
-            students
+            success: true,
+            data: students
         })
 
     } catch (error) {
@@ -158,13 +186,53 @@ export async function addNewStudent(req: Request, res: Response) {
 // verify a student
 
 export async function verifyStudent(req: Request, res: Response) {
-    const userId = req.query.id;
+    const studentId = parseInt(req.params.id);
 
+    if (isNaN(studentId)) return res.status(400).json({
+        success: false,
+        message: "Invalid Student ID"
+    });
 
     try {
+        const student = await prisma.user.findUnique({
+            where: {
+                id: studentId,
+                type: UserType.STUDENT
+            },
+            include: {
+                student: true
+            }
+        });
+
+        if (!student) return res.status(404).json({
+            success: false,
+            message: "Student not found"
+        });
+
+        if (student.student?.isVerified) return res.status(400).json({
+            success: false,
+            message: "Student is already verified"
+        });
+
+        await prisma.student.update({
+            where: {
+                userId: studentId
+            },
+            data: {
+                isVerified: true
+            }
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Student verified successfully"
+        });
 
     } catch (error) {
-
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
     }
 }
 

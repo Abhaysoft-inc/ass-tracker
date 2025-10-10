@@ -4,21 +4,42 @@ import { PrismaClient } from "../../generated/prisma";
 const prisma = new PrismaClient()
 
 export async function viewBatches(req: Request, res: Response) {
-
     try {
-        const batch = await prisma.batches.findMany({
+        const batches = await prisma.batches.findMany({
+            where: {
+                isActive: true
+            },
+            include: {
+                students: {
+                    select: {
+                        userId: true,
+                        rollNumber: true,
+                        user: {
+                            select: {
+                                name: true,
+                                email: true
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
 
-        })
-        res.send(batch);
-
-        if (!batch) return res.send("hopoo")
-
-
+        return res.status(200).json({
+            success: true,
+            data: batches
+        });
 
     } catch (error) {
-
+        console.error("Error fetching batches:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error while fetching batches"
+        });
     }
-
 }
 
 export async function createBatch(req: Request, res: Response) {
@@ -27,13 +48,22 @@ export async function createBatch(req: Request, res: Response) {
 
     try {
         // Extract data from request body
-        const { BatchName, course } = req.body;
+        const { BatchName, course, currentSemester } = req.body;
 
         // Validation
         if (!BatchName || !course) {
             return res.status(400).json({
                 success: false,
                 message: "BatchName and course are required fields"
+            });
+        }
+
+        // Validate currentSemester if provided
+        const semester = currentSemester ? parseInt(currentSemester) : 1;
+        if (semester < 1 || semester > 8) {
+            return res.status(400).json({
+                success: false,
+                message: "Current semester must be between 1 and 8"
             });
         }
 
@@ -58,6 +88,7 @@ export async function createBatch(req: Request, res: Response) {
             data: {
                 BatchName: BatchName.trim(),
                 course: course.trim(),
+                currentSemester: semester,
                 isActive: true
             },
             include: {
