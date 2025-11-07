@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import * as SecureStore from 'expo-secure-store';
 import { BASE_URL } from '../../../config/api';
 import { useRouter } from 'expo-router';
 
@@ -19,10 +20,32 @@ export default function StudentsManagement() {
     const fetchAllStudents = async () => {
         setFetchingStudents(true);
         try {
-            const response = await fetch(`${BASE_URL}/hod/students`);
-            const data = await response.json();
+            const token = await SecureStore.getItemAsync('hodToken');
+            if (!token) {
+                Alert.alert('Error', 'Please login again');
+                router.replace('/');
+                return;
+            }
 
-            if (response.ok && data.success && data.data) {
+            const response = await fetch(`${BASE_URL}/hod/students`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const text = await response.text();
+            let data: any = null;
+
+            try {
+                data = text ? JSON.parse(text) : null;
+            } catch (parseErr) {
+                console.error('Non-JSON response when fetching students:', text, parseErr);
+                Alert.alert('Error', 'Server returned an unexpected response');
+                return;
+            }
+
+            if (response.ok && data && data.success && data.data) {
                 // Transform API data to match our UI format
                 const transformedStudents = data.data.map((student: any) => ({
                     id: student.id,
@@ -36,7 +59,8 @@ export default function StudentsManagement() {
                 }));
                 setStudents(transformedStudents);
             } else {
-                Alert.alert('Error', 'Failed to fetch students');
+                console.error('Failed to fetch students:', { status: response.status, body: data });
+                Alert.alert('Error', data?.message || 'Failed to fetch students');
             }
         } catch (error) {
             console.log('Error fetching students:', error);
@@ -57,6 +81,7 @@ export default function StudentsManagement() {
     // Fetch students when component mounts
     useEffect(() => {
         fetchAllStudents();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const filteredStudents = students.filter(student =>
@@ -97,7 +122,7 @@ export default function StudentsManagement() {
 
             {/* Add Student Button */}
             <View className="px-6 mb-4">
-                <TouchableOpacity className="bg-red-600 rounded-lg py-3 px-4 flex-row items-center justify-center">
+                <TouchableOpacity className="bg-red-600 rounded-lg py-3 px-4 flex-row items-center justify-center" onPress={() => router.push('/(auth)/hod/add-student')}>
                     <Icon name="add" size={20} color="white" />
                     <Text className="text-white font-semibold ml-2">Add New Student</Text>
                 </TouchableOpacity>

@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, BackHandler, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, BackHandler, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
+import { BASE_URL } from '../../../config/api';
 
 export default function StudentDashboard() {
   const router = useRouter();
+  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   // Logout function
   const handleLogout = async () => {
@@ -63,63 +66,39 @@ export default function StudentDashboard() {
     { name: 'Events', icon: 'event' },
   ];
 
-  // Sample notification data
-  const notifications = [
-    {
-      id: 1,
-      type: 'assignment',
-      title: 'New Assignment Posted',
-      description: 'Mathematics Assignment #3 - Calculus has been posted. Due date: March 15th',
-      time: '2 hours ago',
-      isNew: true,
-      icon: 'assignment'
-    },
-    {
-      id: 2,
-      type: 'circular',
-      title: 'Important Circular',
-      description: 'Annual Sports Day event scheduled for March 20th. All students must participate.',
-      time: '5 hours ago',
-      isNew: true,
-      icon: 'announcement'
-    },
-    {
-      id: 3,
-      type: 'results',
-      title: 'Results Declared',
-      description: 'Mid-term examination results for Semester 6 have been published.',
-      time: '1 day ago',
-      isNew: false,
-      icon: 'grade'
-    },
-    {
-      id: 4,
-      type: 'event',
-      title: 'Workshop Registration',
-      description: 'AI & Machine Learning workshop registration is now open. Limited seats available.',
-      time: '2 days ago',
-      isNew: false,
-      icon: 'event'
-    },
-    {
-      id: 5,
-      type: 'assignment',
-      title: 'Assignment Reminder',
-      description: 'Physics Assignment #2 submission deadline is tomorrow at 11:59 PM.',
-      time: '2 days ago',
-      isNew: false,
-      icon: 'assignment'
-    },
-    {
-      id: 6,
-      type: 'circular',
-      title: 'Library Notice',
-      description: 'Library will remain closed on March 18th due to maintenance work.',
-      time: '3 days ago',
-      isNew: false,
-      icon: 'announcement'
+  // Fetch announcements from backend
+  const fetchAnnouncements = async () => {
+    setLoading(true);
+    try {
+      const token = await SecureStore.getItemAsync('loginToken');
+      if (!token) {
+        console.log('No token found');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${BASE_URL}/student/announcements`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAnnouncements(data.announcements || []);
+      } else {
+        console.log('Failed to fetch announcements');
+      }
+    } catch (error) {
+      console.log('Error fetching announcements:', error);
     }
-  ];
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchAnnouncements();
+  }, []);
 
   const [index, setIndex] = useState(0);
 
@@ -244,8 +223,13 @@ export default function StudentDashboard() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 10 }}
           >
-            {notifications.length > 0 ? (
-              notifications.map((notification) => (
+            {loading ? (
+              <View className="flex-1 items-center justify-center">
+                <ActivityIndicator color="#DC2626" size="large" />
+                <Text className="text-gray-500 mt-2">Loading announcements...</Text>
+              </View>
+            ) : announcements.length > 0 ? (
+              announcements.map((notification: any) => (
                 <NotificationItem
                   key={notification.id}
                   notification={notification}
@@ -253,7 +237,7 @@ export default function StudentDashboard() {
               ))
             ) : (
               <View className="flex-1 items-center justify-center">
-                <Text className="text-gray-500">No notifications available</Text>
+                <Text className="text-gray-500">No announcements available</Text>
               </View>
             )}
           </ScrollView>
@@ -275,7 +259,7 @@ export default function StudentDashboard() {
       </View>
 
       <Text className='text-center'> Department of Electrical Engineering</Text>
-      <Text className='text-xs text-center mt-2'>&copy; 2025 Team AAS</Text>
+      <Text className='text-xs text-center mt-2'>&copy; 2025 Team Phool 🌼</Text>
     </ScrollView>
   );
 }

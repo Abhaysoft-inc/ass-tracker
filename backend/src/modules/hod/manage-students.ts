@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient, UserType } from "../../generated/prisma";
+import hashPassword from "../../utils/hashPassword";
 
 const prisma = new PrismaClient();
 
@@ -179,8 +180,55 @@ export async function viewStudentsByBatch(req: Request, res: Response) {
 // add new student
 
 export async function addNewStudent(req: Request, res: Response) {
+    try {
+        const { name, email, password, rollNumber, course, batchId, phone } = req.body;
 
+        if (!name || !email || !password || !rollNumber || !course) {
+            return res.status(400).json({ success: false, message: "Missing required fields" });
+        }
 
+        // Check if email already exists
+        const existingUser = await prisma.user.findUnique({ where: { email } });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: "Email already in use" });
+        }
+
+        // Check if roll number already exists
+        const existingRoll = await prisma.student.findUnique({ where: { rollNumber } });
+        if (existingRoll) {
+            return res.status(400).json({ success: false, message: "Roll number already exists" });
+        }
+
+        const hashedPassword = await hashPassword(password);
+
+        // Create user
+        const user = await prisma.user.create({
+            data: {
+                name: name.trim(),
+                email: email.toLowerCase().trim(),
+                password: hashedPassword,
+                type: UserType.STUDENT
+            }
+        });
+
+        // Create student profile
+        await prisma.student.create({
+            data: {
+                userId: user.id,
+                rollNumber: rollNumber.trim(),
+                course: course.trim(),
+                batchId: batchId ? parseInt(batchId) : null,
+                phone: phone ? phone.trim() : null,
+                isVerified: true // HOD-created students are auto-verified
+            }
+        });
+
+        return res.status(201).json({ success: true, message: "Student created successfully", data: { userId: user.id } });
+
+    } catch (error) {
+        console.error("Add student error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
 }
 
 // verify a student

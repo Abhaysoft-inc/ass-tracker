@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, BackHandler, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -70,9 +70,10 @@ export default function HODDashboard() {
           style: "destructive",
           onPress: async () => {
             try {
-              // Clear stored HOD data
+              // Clear stored HOD data and token
               await SecureStore.deleteItemAsync("hodData");
-              console.log("HOD data cleared");
+              await SecureStore.deleteItemAsync("hodToken");
+              console.log("HOD data and token cleared");
 
               // Navigate back to main screen
               router.dismissAll();
@@ -169,7 +170,7 @@ export default function HODDashboard() {
           Department of Electrical Engineering
         </Text>
         <Text className="text-center text-gray-400 text-xs mt-1">
-          &copy; 2025 Team AAS
+          &copy; 2025 Team Phool 🌼
         </Text>
       </View>
     </ScrollView>

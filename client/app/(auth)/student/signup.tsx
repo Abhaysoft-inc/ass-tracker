@@ -22,11 +22,21 @@ export default function StudentSignupScreen() {
     const [batches, setBatches] = useState<any[]>([]);    // Fetch batches from API
     const fetchBatches = async () => {
         try {
-            const response = await fetch(`${BASE_URL}/hod/batches`);
-            const data = await response.json();
-            if (data.success) {
+            const response = await fetch(`${BASE_URL}/hod/public/batches`);
+            const text = await response.text();
+            let data: any = null;
+            try {
+                data = text ? JSON.parse(text) : null;
+            } catch (parseErr) {
+                console.warn('Non-JSON response when fetching batches:', text, parseErr);
+                Alert.alert('Error', 'Server returned an unexpected response while loading batches');
+                return;
+            }
+
+            if (response.ok && data && data.success) {
                 setBatches(data.data);
             } else {
+                console.warn('Failed to fetch batches', { status: response.status, body: data });
                 Alert.alert('Error', 'Failed to load batches');
             }
         } catch (error) {

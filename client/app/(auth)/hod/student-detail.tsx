@@ -5,9 +5,11 @@ import {
     ScrollView,
     TouchableOpacity,
     ActivityIndicator,
-    BackHandler
+    BackHandler,
+    Alert
 } from 'react-native';
 import Icon from '@expo/vector-icons/MaterialIcons';
+import * as SecureStore from 'expo-secure-store';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { BASE_URL } from '../../../config/api';
 
@@ -27,15 +29,41 @@ export default function StudentDetail() {
     const fetchStudentDetails = React.useCallback(async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${BASE_URL}/hod/students/${id}`);
-            const data = await response.json();
-            if (data.success) {
+
+            const token = await SecureStore.getItemAsync('hodToken');
+            if (!token) {
+                Alert.alert('Error', 'Please login again');
+                router.replace('/');
+                return;
+            }
+
+            const response = await fetch(`${BASE_URL}/hod/students/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const text = await response.text();
+            let data: any = null;
+
+            try {
+                data = text ? JSON.parse(text) : null;
+            } catch (parseErr) {
+                console.error('Non-JSON response when fetching student details:', text, parseErr);
+                Alert.alert('Error', 'Server returned an unexpected response');
+                return;
+            }
+
+            if (response.ok && data && data.success) {
                 setStudent(data.data);
             } else {
-                console.error('Failed to fetch student details:', data.message);
+                console.error('Failed to fetch student details:', { status: response.status, body: data });
+                Alert.alert('Error', data?.message || 'Failed to fetch student details');
             }
         } catch (error) {
             console.error('Error fetching student details:', error);
+            Alert.alert('Error', 'Network error. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -47,14 +75,33 @@ export default function StudentDetail() {
 
     const handleVerifyStudent = async () => {
         try {
+            const token = await SecureStore.getItemAsync('hodToken');
+            if (!token) {
+                Alert.alert('Error', 'Please login again');
+                router.replace('/');
+                return;
+            }
+
             const response = await fetch(`${BASE_URL}/hod/students/${id}/verify`, {
                 method: 'PATCH',
                 headers: {
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
             });
-            const data = await response.json();
-            if (data.success) {
+
+            const text = await response.text();
+            let data: any = null;
+
+            try {
+                data = text ? JSON.parse(text) : null;
+            } catch (parseErr) {
+                console.error('Non-JSON response when verifying student:', text, parseErr);
+                Alert.alert('Error', 'Server returned an unexpected response');
+                return;
+            }
+
+            if (response.ok && data && data.success) {
                 setStudent((prev: any) => ({
                     ...prev,
                     student: {
@@ -62,11 +109,14 @@ export default function StudentDetail() {
                         isVerified: true
                     }
                 }));
+                Alert.alert('Success', 'Student verified successfully');
             } else {
-                console.error('Failed to verify student:', data.message);
+                console.error('Failed to verify student:', { status: response.status, body: data });
+                Alert.alert('Error', data?.message || 'Failed to verify student');
             }
         } catch (error) {
             console.error('Error verifying student:', error);
+            Alert.alert('Error', 'Network error. Please try again.');
         }
     };
 

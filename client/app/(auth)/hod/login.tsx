@@ -47,9 +47,10 @@ export default function HODLoginScreen() {
       const data = await response.json();
       console.log("Response data:", data);
 
-      if (response.ok && data.hod) {
-        // Store HOD data in SecureStore
+      if (response.ok && data.hod && data.token) {
+        // Store HOD data and token in SecureStore
         await SecureStore.setItemAsync("hodData", JSON.stringify(data.hod));
+        await SecureStore.setItemAsync("hodToken", data.token);
         console.log("HOD login successful:", data.msg);
 
         // Reset navigation stack to prevent going back to login

@@ -50,7 +50,7 @@ export default function Index() {
       {/* Footer */}
       <View className="items-center pb-8">
         <Text className="text-gray-500 text-sm">
-          © 2025 Team AAS • All rights reserved
+          © 2025 Team Phool 🌼 • All rights reserved
         </Text>
       </View>
     </View>

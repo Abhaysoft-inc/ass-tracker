@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import * as SecureStore from 'expo-secure-store';
+import { useRouter } from 'expo-router';
 import { BASE_URL } from '../../../config/api';
 
 export default function BatchesManagement() {
+    const router = useRouter();
     const [batches, setBatches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -11,14 +14,38 @@ export default function BatchesManagement() {
     const fetchBatches = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${BASE_URL}/hod/batches`);
-            const data = await response.json();
 
-            if (response.ok && data.success) {
+            // Get HOD token from SecureStore
+            const token = await SecureStore.getItemAsync('hodToken');
+            if (!token) {
+                Alert.alert('Error', 'Please login again');
+                router.replace('/');
+                return;
+            }
+
+            const response = await fetch(`${BASE_URL}/hod/batches`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const text = await response.text();
+            let data: any = null;
+
+            try {
+                data = text ? JSON.parse(text) : null;
+            } catch (parseErr) {
+                console.error('Non-JSON response when fetching batches:', text, parseErr);
+                Alert.alert('Error', 'Server returned an unexpected response');
+                return;
+            }
+
+            if (response.ok && data && data.success) {
                 setBatches(data.data);
             } else {
-                Alert.alert('Error', 'Failed to fetch batches');
-                console.error('Failed to fetch batches:', data.message);
+                console.error('Failed to fetch batches:', { status: response.status, body: data });
+                Alert.alert('Error', data?.message || 'Failed to fetch batches');
             }
         } catch (error) {
             console.error('Error fetching batches:', error);
@@ -31,7 +58,9 @@ export default function BatchesManagement() {
     // Load batches when component mounts
     useEffect(() => {
         fetchBatches();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
     if (loading) {
         return (
             <View className="flex-1 bg-white justify-center items-center">
@@ -64,7 +93,7 @@ export default function BatchesManagement() {
                 <View className="flex-row space-x-3">
                     <TouchableOpacity
                         className="flex-1 bg-red-600 rounded-lg py-3 px-4 flex-row items-center justify-center"
-                        onPress={() => {/* TODO: Add batch creation functionality */ }}
+                        onPress={() => router.push('/(auth)/hod/add-batch')}
                     >
                         <Icon name="add" size={20} color="white" />
                         <Text className="text-white font-semibold ml-2">Add New Batch</Text>

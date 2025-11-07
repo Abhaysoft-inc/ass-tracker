@@ -62,7 +62,7 @@ router.post('/student/register', async (req, res) => {
         }
 
         const hashedPassword = await hashPassword(password);
-        
+
         const newStudent = await prisma.user.create({
             data: {
                 name: name.trim(),
@@ -145,7 +145,16 @@ router.post('/student/login', async (req, res) => {
             error: "email or password is incorrectt"
         });
 
-        const jwt_token = await jwt.sign({ student }, JWT_SECRET);
+        // Generate JWT token for Student (same format as HOD)
+        const jwt_token = jwt.sign(
+            {
+                id: student.id,
+                email: student.email,
+                type: student.type
+            },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
 
         res.status(200).json({
             msg: "User Login Success",
@@ -174,41 +183,76 @@ router.post('/faculty/signup', async (req, res) => {
 
 
 // Faculty login
-
 router.post('/faculty/login', async (req, res) => {
     const { email, password } = req.body;
 
-    try {
+    // Validation
+    if (!email || !password) {
+        return res.status(400).json({
+            success: false,
+            message: "Please provide email and password"
+        });
+    }
 
+    try {
         const faculty = await prisma.user.findUnique({
             where: {
-                email: email,
+                email: email.toLowerCase().trim(),
+            },
+            include: {
+                faculty: true
             }
         });
 
-        if (!faculty) return res.status(500).json({ error: "Email or password is incorrect" });
+        if (!faculty || faculty.type !== 'FACULTY') {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid email or password"
+            });
+        }
 
         const isPasswordCorrect = await bcrypt.compare(password, faculty.password);
-        if (!isPasswordCorrect) return res.send(500).json({ error: "email or password is incorrect" });
+        if (!isPasswordCorrect) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid email or password"
+            });
+        }
 
-        const jwt_token = jwt.sign({ faculty }, JWT_SECRET);
+        // Create JWT token with faculty info
+        const token = jwt.sign(
+            {
+                id: faculty.id,
+                email: faculty.email,
+                type: faculty.type,
+                name: faculty.name
+            },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        console.log("Faculty login successful:", faculty.email);
 
         return res.status(200).json({
-            msg: "faculty login success",
-            jwt_token,
-            faculty
-        })
+            success: true,
+            message: "Login successful",
+            token,
+            user: {
+                id: faculty.id,
+                name: faculty.name,
+                email: faculty.email,
+                type: faculty.type,
+                department: faculty.faculty?.department || null
+            }
+        });
+
     } catch (error) {
-
-        console.log(error);
-        return res.status(401).json({
-            error: `something went wrong : ${error}`,
-        })
-
+        console.error("Faculty login error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
     }
-
-
-
 });
 
 // HOD Login
@@ -238,9 +282,21 @@ router.post('/hod/login', async (req, res) => {
             });
         }
 
+        // Generate JWT token for HOD
+        const token = jwt.sign(
+            {
+                id: hod.id,
+                email: hod.email,
+                type: hod.type
+            },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
         return res.status(200).json({
             msg: "login successfull",
-            hod: hod
+            hod: hod,
+            token: token
         });
 
     } catch (error) {
