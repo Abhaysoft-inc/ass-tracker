@@ -24,15 +24,22 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  student           Student?
-  hod               Hod?
-  faculty           Faculty?
-  announcements     Announcement[]        @relation("AnnouncementCreator")
-  teachingSessions  FacultyBatchSubject[] @relation("FacultyTeaching")
-  conductedSessions AttendanceSession[]   @relation("SessionFaculty")
-  attendanceRecords AttendanceRecord[]    @relation("StudentAttendance")
-  markedAttendance  AttendanceRecord[]    @relation("MarkedBy")
-  timetableSlots    TimetableSlot[]       @relation("TimetableFaculty")
+  student            Student?
+  hod                Hod?
+  faculty            Faculty?
+  announcements      Announcement[]          @relation("AnnouncementCreator")
+  teachingSessions   FacultyBatchSubject[]   @relation("FacultyTeaching")
+  conductedSessions  AttendanceSession[]     @relation("SessionFaculty")
+  attendanceRecords  AttendanceRecord[]      @relation("StudentAttendance")
+  markedAttendance   AttendanceRecord[]      @relation("MarkedBy")
+  timetableSlots     TimetableSlot[]         @relation("TimetableFaculty")
+  createdAssignments Assignment[]            @relation("AssignmentCreator")
+  submissions        AssignmentSubmission[]  @relation("StudentSubmissions")
+  gradedSubmissions  AssignmentSubmission[]  @relation("AssignmentGrader")
+  notifications      Notification[]          @relation("UserNotifications")
+  sentNotifications  Notification[]          @relation("SentNotifications")
+  syllabusProgress   SyllabusProgress[]      @relation("FacultyProgress")
+  topicProgress      SyllabusTopicProgress[] @relation("FacultyTopicProgress")
 
   @@index([email])
   @@index([type])
@@ -94,8 +101,11 @@ model Batches {
   students           Student[] // One-to-many relationship
   announcements      Announcement[]
   facultySubjects    FacultyBatchSubject[]
-  attendanceSessions AttendanceSession[]   @relation("SessionBatch")
-  timetableSlots     TimetableSlot[]       @relation("TimetableBatch")
+  attendanceSessions AttendanceSession[]     @relation("SessionBatch")
+  timetableSlots     TimetableSlot[]         @relation("TimetableBatch")
+  assignments        Assignment[]
+  syllabusProgress   SyllabusProgress[]      @relation("BatchProgress")
+  topicProgress      SyllabusTopicProgress[] @relation("BatchTopicProgress")
 
   @@index([course])
   @@index([BatchName])
@@ -133,6 +143,46 @@ enum AttendanceStatus {
   EXCUSED
 }
 
+enum AssignmentStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum SubmissionStatus {
+  NOT_SUBMITTED
+  SUBMITTED
+  GRADED
+  LATE_SUBMISSION
+}
+
+enum NotificationType {
+  ANNOUNCEMENT
+  ASSIGNMENT
+  ATTENDANCE
+  GENERAL
+  URGENT
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+enum SyllabusTopicStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+enum SyllabusUnitStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
 // Subject model
 model Subject {
   id         Int      @id @default(autoincrement())
@@ -147,6 +197,9 @@ model Subject {
   facultyBatchSubjects FacultyBatchSubject[]
   sessions             AttendanceSession[]
   timetableSlots       TimetableSlot[]
+  assignments          Assignment[]
+  syllabusUnits        SyllabusUnit[]
+  syllabusProgress     SyllabusProgress[]    @relation("SyllabusProgress")
 
   @@index([department])
   @@index([semester])
@@ -189,11 +242,12 @@ model AttendanceSession {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @default(now()) @updatedAt
 
-  subject       Subject            @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  batch         Batches            @relation("SessionBatch", fields: [batchId], references: [BatchId], onDelete: Cascade)
-  faculty       User               @relation("SessionFaculty", fields: [facultyId], references: [id], onDelete: Cascade)
-  timetableSlot TimetableSlot?     @relation(fields: [timetableSlotId], references: [id], onDelete: SetNull)
+  subject       Subject                 @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  batch         Batches                 @relation("SessionBatch", fields: [batchId], references: [BatchId], onDelete: Cascade)
+  faculty       User                    @relation("SessionFaculty", fields: [facultyId], references: [id], onDelete: Cascade)
+  timetableSlot TimetableSlot?          @relation(fields: [timetableSlotId], references: [id], onDelete: SetNull)
   records       AttendanceRecord[]
+  topicProgress SyllabusTopicProgress[]
 
   @@index([subjectId])
   @@index([batchId])
@@ -272,9 +326,164 @@ model TimetableSlot {
   @@index([subjectId])
 }
 
-// Still Missing (for 10/10):
+// Assignment models
+model Assignment {
+  id            Int              @id @default(autoincrement())
+  title         String
+  description   String
+  subjectId     Int
+  batchId       Int
+  facultyId     Int
+  totalMarks    Int              @default(100)
+  dueDate       DateTime
+  status        AssignmentStatus @default(DRAFT)
+  attachmentUrl String?
+  instructions  String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @default(now()) @updatedAt
 
-// Separate table for assignments/attendance tracking
-// Many-to-many relationships (faculty-batch)
-// Soft delete implementation
-// More comprehensive indexing for complex queries
+  subject     Subject                @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  batch       Batches                @relation(fields: [batchId], references: [BatchId], onDelete: Cascade)
+  faculty     User                   @relation("AssignmentCreator", fields: [facultyId], references: [id], onDelete: Cascade)
+  submissions AssignmentSubmission[]
+
+  @@index([subjectId])
+  @@index([batchId])
+  @@index([facultyId])
+  @@index([dueDate])
+  @@index([status])
+}
+
+model AssignmentSubmission {
+  id            Int              @id @default(autoincrement())
+  assignmentId  Int
+  studentId     Int
+  content       String?
+  attachmentUrl String?
+  submittedAt   DateTime?
+  status        SubmissionStatus @default(NOT_SUBMITTED)
+  marks         Int?
+  feedback      String?
+  gradedBy      Int?
+  gradedAt      DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @default(now()) @updatedAt
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student    User       @relation("StudentSubmissions", fields: [studentId], references: [id], onDelete: Cascade)
+  grader     User?      @relation("AssignmentGrader", fields: [gradedBy], references: [id], onDelete: SetNull)
+
+  @@unique([assignmentId, studentId])
+  @@index([assignmentId])
+  @@index([studentId])
+  @@index([status])
+}
+
+// Notifications model for better notification management
+model Notification {
+  id         Int                @id @default(autoincrement())
+  title      String
+  message    String
+  type       NotificationType
+  userId     Int // Who should receive this notification
+  senderId   Int? // Who sent this notification (optional)
+  status     NotificationStatus @default(UNREAD)
+  metadata   Json? // Additional data (assignment ID, announcement ID, etc.)
+  createdAt  DateTime           @default(now())
+  readAt     DateTime?
+  archivedAt DateTime?
+
+  user   User  @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  sender User? @relation("SentNotifications", fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Syllabus structure models
+model SyllabusUnit {
+  id          Int      @id @default(autoincrement())
+  subjectId   Int
+  unitNumber  Int // Unit 1, 2, 3, etc.
+  title       String
+  description String?
+  weightage   Int      @default(0) // Marks/percentage weightage
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  subject  Subject            @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topics   SyllabusTopic[]
+  progress SyllabusProgress[] @relation("UnitProgress")
+
+  @@unique([subjectId, unitNumber])
+  @@index([subjectId])
+}
+
+model SyllabusTopic {
+  id             Int      @id @default(autoincrement())
+  unitId         Int
+  topicNumber    Int // Topic 1.1, 1.2, etc.
+  title          String
+  description    String?
+  estimatedHours Int      @default(1) // Expected teaching hours
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
+
+  unit     SyllabusUnit            @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  progress SyllabusTopicProgress[]
+
+  @@unique([unitId, topicNumber])
+  @@index([unitId])
+}
+
+// Progress tracking for faculty-batch-subject combinations
+model SyllabusProgress {
+  id                Int                @id @default(autoincrement())
+  facultyId         Int
+  batchId           Int
+  subjectId         Int
+  unitId            Int
+  status            SyllabusUnitStatus @default(NOT_STARTED)
+  completionPercent Int                @default(0) // 0-100
+  startedAt         DateTime?
+  completedAt       DateTime?
+  notes             String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @default(now()) @updatedAt
+
+  faculty User         @relation("FacultyProgress", fields: [facultyId], references: [id], onDelete: Cascade)
+  batch   Batches      @relation("BatchProgress", fields: [batchId], references: [BatchId], onDelete: Cascade)
+  subject Subject      @relation("SyllabusProgress", fields: [subjectId], references: [id], onDelete: Cascade)
+  unit    SyllabusUnit @relation("UnitProgress", fields: [unitId], references: [id], onDelete: Cascade)
+
+  @@unique([facultyId, batchId, subjectId, unitId])
+  @@index([facultyId])
+  @@index([batchId])
+  @@index([subjectId])
+}
+
+// Topic-level progress tracking
+model SyllabusTopicProgress {
+  id        Int                 @id @default(autoincrement())
+  facultyId Int
+  batchId   Int
+  topicId   Int
+  status    SyllabusTopicStatus @default(NOT_STARTED)
+  taughtAt  DateTime?
+  sessionId Int? // Link to attendance session if taught
+  notes     String?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @default(now()) @updatedAt
+
+  faculty User               @relation("FacultyTopicProgress", fields: [facultyId], references: [id], onDelete: Cascade)
+  batch   Batches            @relation("BatchTopicProgress", fields: [batchId], references: [BatchId], onDelete: Cascade)
+  topic   SyllabusTopic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  session AttendanceSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@unique([facultyId, batchId, topicId])
+  @@index([facultyId])
+  @@index([batchId])
+  @@index([topicId])
+}

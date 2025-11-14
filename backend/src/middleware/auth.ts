@@ -31,9 +31,12 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 
 export const authenticateHOD = (req: Request, res: Response, next: NextFunction) => {
     authenticateToken(req, res, () => {
+        console.log('HOD authentication check - user:', req.user);
         if (req.user?.type !== 'HOD') {
+            console.log('HOD access denied - user type:', req.user?.type);
             return res.status(403).json({ error: 'HOD access required' });
         }
+        console.log('HOD authentication successful');
         next();
     });
 };

@@ -1,12 +1,33 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, BackHandler, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, BackHandler, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
+import { hodAPI } from '../../../services/api';
 
 export default function HODDashboard() {
   const router = useRouter();
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Load analytics data
+  useEffect(() => {
+    loadAnalytics();
+  }, []);
+
+  const loadAnalytics = async () => {
+    try {
+      setLoading(true);
+      const data = await hodAPI.getAnalytics();
+      setAnalytics(data);
+    } catch (error) {
+      console.error('Error loading analytics:', error);
+      Alert.alert('Error', 'Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Prevent back navigation to login screen
   useFocusEffect(
@@ -34,21 +55,36 @@ export default function HODDashboard() {
     { name: 'Reports', icon: 'assessment', description: 'Generate reports' },
   ];
 
-  // Quick stats data
-  const quickStats = [
-    { label: 'Total Students', value: '245', color: '#DC2626' },
-    { label: 'Faculty Members', value: '18', color: '#EF4444' },
-    { label: 'Active Batches', value: '6', color: '#F87171' },
-    { label: 'Subjects', value: '24', color: '#B91C1C' },
-  ];
+  // Quick stats data from analytics
+  const quickStats = analytics ? [
+    { label: 'Total Students', value: analytics.quickStats.totalStudents.toString(), color: '#DC2626' },
+    { label: 'Faculty Members', value: analytics.quickStats.totalFaculty.toString(), color: '#EF4444' },
+    { label: 'Active Batches', value: analytics.quickStats.activeBatches.toString(), color: '#F87171' },
+    { label: 'Total Subjects', value: analytics.quickStats.totalSubjects.toString(), color: '#B91C1C' },
+  ] : [];
 
-  // Recent activities
-  const recentActivities = [
-    { activity: 'New student admission - Rahul Sharma', time: '2 hours ago' },
-    { activity: 'Assignment posted for EE-301', time: '4 hours ago' },
-    { activity: 'Faculty meeting scheduled', time: '1 day ago' },
-    { activity: 'Attendance report generated', time: '2 days ago' },
-  ];
+  // Additional stats
+  const additionalStats = analytics ? [
+    { label: 'Total Assignments', value: analytics.quickStats.totalAssignments.toString(), color: '#059669' },
+    { label: 'Pending Assignments', value: analytics.quickStats.pendingAssignments.toString(), color: '#D97706' },
+    { label: 'Recent Notifications', value: analytics.quickStats.recentNotifications.toString(), color: '#7C3AED' },
+    { label: 'Department Analytics', value: 'EED', color: '#0EA5E9' },
+  ] : [];
+
+  // Recent activities from analytics
+  const recentActivities = analytics && analytics.recentActivities ? analytics.recentActivities.map((activity: any) => {
+    const activityDate = new Date(activity.time);
+    const formattedTime = activityDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    return {
+      activity: activity.activity,
+      time: formattedTime
+    };
+  }) : [];
 
   const handleManagementPress = (itemName: string) => {
     // Navigation logic for different management sections
@@ -90,6 +126,15 @@ export default function HODDashboard() {
     );
   };
 
+  if (loading) {
+    return (
+      <View className="flex-1 bg-white justify-center items-center">
+        <ActivityIndicator size="large" color="#EF4444" />
+        <Text className="mt-4 text-gray-600">Loading dashboard...</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView className="flex-1 bg-white" contentContainerStyle={{ flexGrow: 1 }}>
       {/* Header */}
@@ -100,14 +145,24 @@ export default function HODDashboard() {
             <Text className="text-red-100 text-base mt-1">Department of Electrical Engineering</Text>
           </View>
 
-          {/* Logout Button */}
-          <TouchableOpacity
-            onPress={handleLogout}
-            className="bg-red-500 px-4 py-2 rounded-lg flex-row items-center"
-          >
-            <Icon name="logout" size={20} color="white" />
-            <Text className="text-white font-medium ml-2">Logout</Text>
-          </TouchableOpacity>
+          {/* Action Buttons */}
+          <View className="flex-row">
+            <TouchableOpacity
+              onPress={loadAnalytics}
+              className="bg-red-500 px-3 py-2 rounded-lg mr-2"
+              disabled={loading}
+            >
+              <Icon name="refresh" size={20} color="white" />
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={handleLogout}
+              className="bg-red-500 px-4 py-2 rounded-lg flex-row items-center"
+            >
+              <Icon name="logout" size={20} color="white" />
+              <Text className="text-white font-medium ml-2">Logout</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -117,6 +172,21 @@ export default function HODDashboard() {
         <View className="flex-row flex-wrap justify-between">
           {quickStats.map((stat, idx) => (
             <View key={idx} className="w-[48%] bg-gray-50 rounded-lg p-4 mb-3">
+              <Text className="text-2xl font-bold" style={{ color: stat.color }}>
+                {stat.value}
+              </Text>
+              <Text className="text-gray-600 text-sm">{stat.label}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Additional Analytics */}
+      <View className="px-6 py-4">
+        <Text className="text-xl font-semibold mb-4">Department Analytics</Text>
+        <View className="flex-row flex-wrap justify-between">
+          {additionalStats.map((stat, idx) => (
+            <View key={idx} className="w-[48%] bg-white rounded-lg p-4 mb-3 border border-gray-200 shadow-sm">
               <Text className="text-2xl font-bold" style={{ color: stat.color }}>
                 {stat.value}
               </Text>

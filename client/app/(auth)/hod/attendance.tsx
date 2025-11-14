@@ -77,18 +77,7 @@ export default function AttendanceReports() {
 
     return (
         <ScrollView className="flex-1 bg-white">
-            {/* Header */}
-            <View className="bg-red-600 pt-16 pb-6 px-6">
-                <View className="flex-row items-center">
-                    <TouchableOpacity onPress={() => router.back()} className="mr-4">
-                        <Icon name="arrow-back" size={24} color="white" />
-                    </TouchableOpacity>
-                    <View>
-                        <Text className="text-white text-2xl font-bold">Attendance Dashboard</Text>
-                        <Text className="text-red-100 text-sm mt-1">Monitor attendance statistics</Text>
-                    </View>
-                </View>
-            </View>
+           
 
             <View className="p-6">
                 {stats ? (

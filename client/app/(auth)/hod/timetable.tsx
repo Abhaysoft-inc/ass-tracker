@@ -232,9 +232,7 @@ export default function TimetableManagement() {
 
     return (
         <View className="flex-1 bg-white">
-            <View className="px-4 py-5 bg-blue-600">
-                <Text className="text-white text-lg font-bold">HOD Timetable</Text>
-            </View>
+            
 
             <View className="p-4">
                 <View className="mb-3">

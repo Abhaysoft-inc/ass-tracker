@@ -7,6 +7,9 @@ export default function RootLayout() {
     <>
       <StatusBar backgroundColor="#000000ff" barStyle="light-content" />
       <Stack>
+        {/* Server Configuration Screen - First screen */}
+        <Stack.Screen name="server-config" options={{ headerShown: false }} />
+
         {/* Home screen */}
         <Stack.Screen name="index" options={{ headerShown: false }} />
 

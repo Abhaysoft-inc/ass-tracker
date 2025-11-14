@@ -5,7 +5,7 @@ export default function Index() {
   const router = useRouter();
 
   return (
-    <View className="flex-1 bg-gradient-to-br from-blue-50 to-blue-100">
+    <View className="flex-1 bg-blue-50">
       {/* Main Content Container */}
       <View className="flex-1 justify-center px-8">
 
@@ -49,6 +49,12 @@ export default function Index() {
 
       {/* Footer */}
       <View className="items-center pb-8">
+        <Pressable
+          className="mb-4 px-4 py-2 rounded-lg bg-gray-200 active:bg-gray-300"
+          onPress={() => router.push("/server-config")}
+        >
+          <Text className="text-gray-600 text-sm">⚙️ Server Configuration</Text>
+        </Pressable>
         <Text className="text-gray-500 text-sm">
           © 2025 Team Phool 🌼 • All rights reserved
         </Text>

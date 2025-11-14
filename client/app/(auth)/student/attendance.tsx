@@ -84,17 +84,7 @@ export default function StudentAttendance() {
     return (
         <ScrollView className="flex-1 bg-white">
             {/* Header */}
-            <View className="bg-blue-600 pt-16 pb-6 px-6">
-                <View className="flex-row items-center">
-                    <TouchableOpacity onPress={() => router.back()} className="mr-4">
-                        <Icon name="arrow-back" size={24} color="white" />
-                    </TouchableOpacity>
-                    <View>
-                        <Text className="text-white text-2xl font-bold">My Attendance</Text>
-                        <Text className="text-blue-100 text-sm mt-1">Track your class attendance</Text>
-                    </View>
-                </View>
-            </View>
+
 
             <View className="p-6">
                 {attendanceData ? (
@@ -165,12 +155,12 @@ export default function StudentAttendance() {
                                                         {subject.present} / {subject.totalClasses} classes
                                                     </Text>
                                                     <View className={`px-3 py-1 rounded-full ${percentage >= 90 ? 'bg-green-100' :
-                                                            percentage >= 75 ? 'bg-yellow-100' :
-                                                                'bg-red-100'
+                                                        percentage >= 75 ? 'bg-yellow-100' :
+                                                            'bg-red-100'
                                                         }`}>
                                                         <Text className={`text-xs font-semibold ${percentage >= 90 ? 'text-green-700' :
-                                                                percentage >= 75 ? 'text-yellow-700' :
-                                                                    'text-red-700'
+                                                            percentage >= 75 ? 'text-yellow-700' :
+                                                                'text-red-700'
                                                             }`}>
                                                             {percentage >= 90 ? 'Excellent' :
                                                                 percentage >= 75 ? 'Good' :

@@ -9,6 +9,143 @@ import { authenticateHOD } from "../../middleware/auth";
 const router = Router();
 const prisma = new PrismaClient();
 
+// --------------   Analytics ----------------------
+
+// Get dashboard analytics for HOD
+router.get("/analytics", authenticateHOD, async (req: Request, res: Response) => {
+    try {
+        const userId = req.user?.id;
+
+        // Get HOD details to determine department
+        const hod = await prisma.hod.findUnique({
+            where: { userId },
+            select: { department: true }
+        });
+
+        if (!hod) {
+            return res.status(404).json({ success: false, message: "HOD not found" });
+        }
+
+        // Get total students in HOD's department
+        const totalStudents = await prisma.student.count({
+            where: {
+                batch: {
+                    course: "B.Tech" // Assuming B.Tech for now
+                }
+            }
+        });
+
+        // Get total faculty in HOD's department
+        const totalFaculty = await prisma.faculty.count({
+            where: {
+                department: hod.department
+            }
+        });
+
+        // Get active batches
+        const activeBatches = await prisma.batches.count({
+            where: {
+                isActive: true,
+                course: "B.Tech"
+            }
+        });
+
+        // Get total subjects in department
+        const totalSubjects = await prisma.subject.count({
+            where: {
+                department: hod.department
+            }
+        });
+
+        // Get total assignments in department
+        const totalAssignments = await prisma.assignment.count({
+            where: {
+                subject: {
+                    department: hod.department
+                }
+            }
+        });
+
+        // Get pending assignments (not submitted by all students)
+        const pendingAssignments = await prisma.assignment.count({
+            where: {
+                subject: {
+                    department: hod.department
+                },
+                status: 'PUBLISHED',
+                dueDate: {
+                    gte: new Date()
+                }
+            }
+        });
+
+        // Get recent activities (last 10 assignments and notifications)
+        const recentAssignments = await prisma.assignment.findMany({
+            where: {
+                subject: {
+                    department: hod.department
+                }
+            },
+            include: {
+                subject: {
+                    select: { name: true, code: true }
+                },
+                faculty: {
+                    select: { name: true }
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            },
+            take: 5
+        });
+
+        // Get notifications sent by HODs in the department (recent notifications)
+        const recentNotifications = await prisma.notification.count({
+            where: {
+                sender: {
+                    type: 'HOD',
+                    hod: {
+                        department: hod.department
+                    }
+                },
+                createdAt: {
+                    gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
+                }
+            }
+        });
+
+        // Format recent activities
+        const recentActivities = recentAssignments.map(assignment => ({
+            activity: `Assignment "${assignment.title}" posted for ${assignment.subject.name}`,
+            time: assignment.createdAt,
+            type: 'assignment'
+        }));
+
+        const analytics = {
+            quickStats: {
+                totalStudents,
+                totalFaculty,
+                activeBatches,
+                totalSubjects,
+                totalAssignments,
+                pendingAssignments,
+                recentNotifications
+            },
+            recentActivities: recentActivities.slice(0, 5)
+        };
+
+        res.json({
+            success: true,
+            data: analytics
+        });
+
+    } catch (error) {
+        console.error("Get HOD analytics error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+});
+
 // --------------   Students ----------------------
 
 // View list of all students all branches, all batches

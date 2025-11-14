@@ -37,7 +37,7 @@ export default function SubjectsManagement() {
     });
 
     const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
-    const departments = ['Computer Science', 'Electronics', 'Electrical', 'Mechanical', 'Civil'];
+    const departments = ['Electrical'];
 
     const getToken = async () => await SecureStore.getItemAsync('hodToken');
 
@@ -217,10 +217,7 @@ export default function SubjectsManagement() {
 
     return (
         <View className="flex-1 bg-white">
-            {/* Header */}
-            <View className="px-4 py-5 bg-blue-600">
-                <Text className="text-white text-lg font-bold">Subjects Management</Text>
-            </View>
+
 
             <ScrollView className="flex-1">
                 {/* Search and Filter */}
